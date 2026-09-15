@@ -1,126 +1,199 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
+
+// Pestañas del personaje
 import { ProfileTab } from './components/ProfileTab';
+//import { StatsTab } from './components/StatsTab';
+import { ClassTab } from './components/ClassTab';
+//import { InventoryTab } from './components/InventoryTab';
+//import { EquipmentTab } from './components/EquipmentTab';
+//import { BiographyTab } from './components/BiographyTab';
 
 export function CharacterDetailView() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [character, setCharacter] = useState(null);
-  const [activeTab, setActiveTab] = useState('perfil');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('profile');
 
   useEffect(() => {
-    const fetchCharacter = async () => {
-      // Hacemos LEFT JOIN opcional para evitar que truene si main_class_id es null
-      const { data, error } = await supabase
+    if (id) {
+      fetchCharacter();
+    }
+  }, [id]);
+
+  const fetchCharacter = async () => {
+    try {
+      setLoading(true);
+
+      // Consulta intentando traer las relaciones de clase y subclase
+      let { data, error } = await supabase
         .from('characters')
-        .select('*, classes:main_class_id(nombre)')
+        .select(`
+          *,
+          classes ( id, nombre ),
+          subclasses ( id, nombre )
+        `)
         .eq('id', id)
         .maybeSingle();
 
+      // Fallback: Si la consulta relacional falla por falta de Foreign Keys en la BD, hacemos una consulta plana
       if (error || !data) {
-        console.error("Error fetching character:", error);
-        alert('Personaje no encontrado');
-        navigate('/dashboard');
+        const fallbackResponse = await supabase
+          .from('characters')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        data = fallbackResponse.data;
+        error = fallbackResponse.error;
+      }
+
+      if (error) {
+        console.error('Error cargando personaje:', error);
       } else {
         setCharacter(data);
       }
+    } catch (err) {
+      console.error('Error inesperado al obtener el personaje:', err);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
-    if (id) fetchCharacter();
-  }, [id, navigate]);
+  // Sincronización en tiempo real del estado local cuando una pestaña actualiza un campo
+  const handleCharacterUpdate = (field, value) => {
+    setCharacter((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">Cargando ficha...</div>;
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white">
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-mono text-gray-400">Cargando datos del aventurero...</p>
+      </div>
+    );
   }
 
-  if (!character) return null;
-
-  const tabs = [
-    { id: 'perfil', label: 'Perfil' },
-    { id: 'estadisticas', label: 'Estadísticas' },
-    { id: 'clase', label: 'Clase' },
-    { id: 'equipo', label: 'Equipo' },
-    { id: 'inventario', label: 'Inventario' },
-    { id: 'biografia', label: 'Biografía' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-5xl mx-auto mb-4">
+  if (!character) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white">
+        <p className="text-lg font-semibold mb-4 text-gray-300">Personaje no encontrado.</p>
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1 cursor-pointer"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition cursor-pointer"
+        >
+          ← Volver al Panel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-8 flex flex-col items-center">
+      {/* Botón Volver */}
+      <div className="w-full max-w-4xl mb-6">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="text-xs font-mono uppercase tracking-wider text-gray-400 hover:text-white flex items-center gap-2 transition cursor-pointer"
         >
           ← Volver al Panel
         </button>
       </div>
 
-      <header className="max-w-5xl mx-auto bg-gray-900 border border-gray-800 p-6 rounded-2xl mb-6 shadow-xl flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-black">{character.nombre}</h1>
-          <p className="text-sm text-indigo-400 font-medium">
-            Nivel {character.nivel || 1} | {character.classes?.nombre || 'Sin Clase Asignada'}
-          </p>
-        </div>
-      </header>
+      {/* Navegación por Pestañas */}
+      <div className="w-full max-w-4xl flex border-b border-gray-800 mb-8 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`px-5 py-3 text-sm font-bold tracking-wide transition border-b-2 cursor-pointer ${
+            activeTab === 'profile'
+              ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Perfil
+        </button>
+        <button
+          onClick={() => setActiveTab('class')}
+          className={`px-5 py-3 text-sm font-bold tracking-wide transition border-b-2 cursor-pointer ${
+            activeTab === 'class'
+              ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Clase
+        </button>
+        <button
+          onClick={() => setActiveTab('stats')}
+          className={`px-5 py-3 text-sm font-bold tracking-wide transition border-b-2 cursor-pointer ${
+            activeTab === 'stats'
+              ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Estadísticas
+        </button>
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className={`px-5 py-3 text-sm font-bold tracking-wide transition border-b-2 cursor-pointer ${
+            activeTab === 'inventory'
+              ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Inventario
+        </button>
+        <button
+          onClick={() => setActiveTab('equipment')}
+          className={`px-5 py-3 text-sm font-bold tracking-wide transition border-b-2 cursor-pointer ${
+            activeTab === 'equipment'
+              ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Equipamiento
+        </button>
+        <button
+          onClick={() => setActiveTab('biography')}
+          className={`px-5 py-3 text-sm font-bold tracking-wide transition border-b-2 cursor-pointer ${
+            activeTab === 'biography'
+              ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Biografía
+        </button>
+      </div>
 
-      <nav className="max-w-5xl mx-auto border-b border-gray-800 flex gap-2 mb-6 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 font-bold text-sm rounded-t-xl transition cursor-pointer ${
-              activeTab === tab.id
-                ? 'bg-gray-900 text-indigo-400 border-t-2 border-indigo-500'
-                : 'text-gray-400 hover:text-white hover:bg-gray-900/50'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-
-      <main className="max-w-5xl mx-auto">
-        {activeTab === 'perfil' && <ProfileTab character={character} />}
-
-        {activeTab === 'estadisticas' && (
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-            <h2 className="text-lg font-bold mb-2">Vista de Estadísticas</h2>
-            <p className="text-gray-400 text-sm">Próximamente: Radar Chart y Barras de HP/EXP.</p>
-          </div>
+      {/* Renderizado Condicional de Contenido */}
+      <div className="w-full max-w-4xl flex justify-center">
+        {activeTab === 'profile' && (
+          <ProfileTab character={character} onCharacterUpdate={handleCharacterUpdate} />
         )}
-
-        {activeTab === 'clase' && (
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-            <h2 className="text-lg font-bold mb-2">Vista de Clase</h2>
-            <p className="text-gray-400 text-sm">Próximamente: Tabla de progresión por nivel.</p>
-          </div>
+        {activeTab === 'class' && (
+          <ClassTab character={character} onCharacterUpdate={handleCharacterUpdate} />
         )}
-
-        {activeTab === 'equipo' && (
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-            <h2 className="text-lg font-bold mb-2">Vista de Equipo</h2>
-            <p className="text-gray-400 text-sm">Próximamente: Ranuras de equipamiento activo.</p>
-          </div>
+        {activeTab === 'stats' && (
+          <StatsTab character={character} onCharacterUpdate={handleCharacterUpdate} />
         )}
-
-        {activeTab === 'inventario' && (
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-            <h2 className="text-lg font-bold mb-2">Vista de Inventario</h2>
-            <p className="text-gray-400 text-sm">Próximamente: Mochila y gestión de dinero.</p>
-          </div>
+        {activeTab === 'inventory' && (
+          <InventoryTab character={character} onCharacterUpdate={handleCharacterUpdate} />
         )}
-
-        {activeTab === 'biografia' && (
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-            <h2 className="text-lg font-bold mb-2">Vista de Biografía</h2>
-            <p className="text-gray-400 text-sm">Próximamente: Historia y personalidad.</p>
-          </div>
+        {activeTab === 'equipment' && (
+          <EquipmentTab character={character} onCharacterUpdate={handleCharacterUpdate} />
         )}
-      </main>
+        {activeTab === 'biography' && (
+          <BiographyTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+        )}
+      </div>
     </div>
   );
 }
