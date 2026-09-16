@@ -4,7 +4,7 @@ import { supabase } from '../../services/supabaseClient';
 
 // Pestañas del personaje
 import { ProfileTab } from './components/ProfileTab';
-//import { StatsTab } from './components/StatsTab';
+import { StatsTab } from './components/StatsTab';
 import { ClassTab } from './components/ClassTab';
 //import { InventoryTab } from './components/InventoryTab';
 //import { EquipmentTab } from './components/EquipmentTab';

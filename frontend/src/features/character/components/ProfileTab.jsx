@@ -41,7 +41,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   const [multiSubclassesList, setMultiSubclassesList] = useState([]);
   
   const [languagesList, setLanguagesList] = useState([]);
-  const [extraLanguages, setExtraLanguages] = useState([]); // Idioma extra (ej. Humano)
+  const [extraLanguages, setExtraLanguages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [savingField, setSavingField] = useState(null);
 
@@ -65,12 +65,13 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   }, [character?.id]);
 
   useEffect(() => {
-    if (character?.class_id) {
-      fetchSubclasses(character.class_id, setSubclassesList);
+    const activeClassId = character?.main_class_id || character?.class_id;
+    if (activeClassId) {
+      fetchSubclasses(activeClassId, setSubclassesList);
     } else {
       setSubclassesList([]);
     }
-  }, [character?.class_id]);
+  }, [character?.main_class_id, character?.class_id]);
 
   useEffect(() => {
     if (character?.multiclass_id) {
@@ -126,7 +127,6 @@ export function ProfileTab({ character, onCharacterUpdate }) {
     }
   };
 
-  // Normalizar la raza seleccionada
   const getRazaClave = () => {
     if (!character?.raza) return '';
     return character.raza
@@ -142,7 +142,6 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   const handleSelectExtraLanguage = async (idiomaNombre) => {
     if (!character?.id) return;
 
-    // Eliminar idioma previo asignado si existe
     await supabase
       .from('character_languages')
       .delete()
@@ -179,14 +178,18 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleClassChange = async (newClassId) => {
-    setSavingField('class_id');
-    const updates = { class_id: newClassId || null, subclass_id: null };
+    setSavingField('main_class_id');
+    const updates = { main_class_id: newClassId || null, subclass_id: null };
 
     try {
-      const { error } = await supabase.from('characters').update(updates).eq('id', character.id);
+      const { error } = await supabase
+        .from('characters')
+        .update(updates)
+        .eq('id', character.id);
+
       if (error) throw error;
 
-      onCharacterUpdate('class_id', updates.class_id);
+      onCharacterUpdate('main_class_id', updates.main_class_id);
       onCharacterUpdate('subclass_id', null);
     } catch (err) {
       console.error('Error al cambiar clase:', err);
@@ -270,6 +273,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
       setUploading(false);
     }
   };
+
+  const activeClassId = character?.main_class_id || character?.class_id;
 
   return (
     <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl relative overflow-hidden backdrop-blur-sm">
@@ -389,13 +394,13 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             </select>
           </div>
 
-          {/* Clase */}
+          {/* Clase Principal */}
           <div className="border-b border-gray-800/80 pb-2">
             <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Clase Principal</p>
             <select
-              value={character?.class_id || ''}
+              value={character?.main_class_id || character?.class_id || ''}
               onChange={(e) => handleClassChange(e.target.value)}
-              disabled={savingField === 'class_id'}
+              disabled={savingField === 'main_class_id'}
               className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
             >
               <option value="">Selecciona clase...</option>
@@ -413,11 +418,11 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             <select
               value={character?.subclass_id || ''}
               onChange={(e) => handleSubclassChange(e.target.value)}
-              disabled={savingField === 'subclass_id' || !character?.class_id}
+              disabled={savingField === 'subclass_id' || !activeClassId}
               className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer disabled:opacity-40"
             >
               <option value="">
-                {!character?.class_id ? 'Elige una clase primero' : 'Selecciona subclase...'}
+                {!activeClassId ? 'Elige una clase primero' : 'Selecciona subclase...'}
               </option>
               {subclassesList.map((sub) => (
                 <option key={sub.id} value={sub.id} className="bg-gray-900 text-white">
@@ -472,7 +477,6 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             </p>
 
             <div className="flex flex-wrap items-center gap-2">
-              {/* Badges Fijos (Razas estándar) */}
               {nativeLanguages.map((idioma) => (
                 <div
                   key={`native-${idioma}`}
@@ -482,7 +486,6 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                 </div>
               ))}
 
-              {/* Selector de Idioma Adicional solo para Humano */}
               {isHumano && (
                 <div className="flex-1 min-w-[200px]">
                   <select
