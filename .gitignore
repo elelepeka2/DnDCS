@@ -30,6 +30,15 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
+# Local tooling
+.atl/
+.tmp/
+
 # Supabase local state
 supabase/.branches/
 supabase/.temp/
+
+# Supabase CLI shims that npm regenerates per-platform
+node_modules/.bin/supabase
+node_modules/.bin/supabase.cmd
+node_modules/.bin/supabase.ps1
