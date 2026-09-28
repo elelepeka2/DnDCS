@@ -34,7 +34,8 @@ export function CharacterDetailView() {
         .select(`
           *,
           classes ( id, nombre ),
-          subclasses ( id, nombre )
+          subclasses ( id, nombre ),
+          races ( id, name )
         `)
         .eq('id', id)
         .maybeSingle();

@@ -176,7 +176,7 @@ export function StatsTab({ character, onCharacterUpdate }) {
   const expProgress = getLevelProgress(exp);
   const profBonus = getProficiencyBonus(expProgress.level);
 
-  const raceKey = normalizeStr(character?.raza || '');
+  const raceKey = normalizeStr(character?.races?.name || '');
   const raceBonusMap = RACE_BONUSES[raceKey] || {};
 
   const getTotalStat = (statKey) => {
@@ -206,7 +206,7 @@ export function StatsTab({ character, onCharacterUpdate }) {
   useEffect(() => {
     const fetchClassDetails = async () => {
       const rawClassName = character?.clase_principal || character?.clase || '';
-      const rawClassId = character?.main_class_id || character?.class_id;
+      const rawClassId = character?.class_id;
 
       if (!rawClassName && !rawClassId) return;
 
@@ -282,7 +282,7 @@ export function StatsTab({ character, onCharacterUpdate }) {
     };
 
     fetchClassDetails();
-  }, [character?.main_class_id, character?.class_id, character?.clase, character?.clase_principal]);
+  }, [character?.class_id, character?.clase, character?.clase_principal]);
 
   useEffect(() => {
     if (character) {
@@ -298,7 +298,7 @@ export function StatsTab({ character, onCharacterUpdate }) {
       const initRolls = character.hp_rolls ?? [];
       const initLevel = getLevelProgress(initExp).level;
       
-      const raceBonusCon = (RACE_BONUSES[normalizeStr(character?.raza || '')] || {}).constitucion_base || 0;
+      const raceBonusCon = (RACE_BONUSES[normalizeStr(character?.races?.name || '')] || {}).constitucion_base || 0;
       const totalCon = (initStats.constitucion_base || 10) + raceBonusCon;
 
       const computedHpMax = calculateMaxHpFromRolls(hitDiceSides, initLevel, totalCon, initRolls);
@@ -311,7 +311,7 @@ export function StatsTab({ character, onCharacterUpdate }) {
       setHpMax(computedHpMax);
       setHpActual(character.hp_actual ?? computedHpMax);
     }
-  }, [character?.id, character?.raza]);
+  }, [character?.id, character?.race_id]);
 
   const autoSaveToSupabase = (fieldsToUpdate) => {
     if (!character?.id) return;

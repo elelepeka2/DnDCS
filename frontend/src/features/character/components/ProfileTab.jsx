@@ -65,13 +65,13 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   }, [character?.id]);
 
   useEffect(() => {
-    const activeClassId = character?.main_class_id || character?.class_id;
+    const activeClassId = character?.class_id;
     if (activeClassId) {
       fetchSubclasses(activeClassId, setSubclassesList);
     } else {
       setSubclassesList([]);
     }
-  }, [character?.main_class_id, character?.class_id]);
+  }, [character?.class_id]);
 
   useEffect(() => {
     if (character?.multiclass_id) {
@@ -128,8 +128,9 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const getRazaClave = () => {
-    if (!character?.raza) return '';
-    return character.raza
+    const raza = razas.find((r) => r.id === character?.race_id);
+    if (!raza) return '';
+    return raza.name
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
@@ -178,8 +179,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleClassChange = async (newClassId) => {
-    setSavingField('main_class_id');
-    const updates = { main_class_id: newClassId || null, subclass_id: null };
+    setSavingField('class_id');
+    const updates = { class_id: newClassId || null, subclass_id: null };
 
     try {
       const { error } = await supabase
@@ -189,7 +190,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
 
       if (error) throw error;
 
-      onCharacterUpdate('main_class_id', updates.main_class_id);
+      onCharacterUpdate('class_id', updates.class_id);
       onCharacterUpdate('subclass_id', null);
     } catch (err) {
       console.error('Error al cambiar clase:', err);
@@ -274,7 +275,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
     }
   };
 
-  const activeClassId = character?.main_class_id || character?.class_id;
+  const activeClassId = character?.class_id;
 
   return (
     <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl relative overflow-hidden backdrop-blur-sm">
@@ -380,14 +381,14 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           <div className="border-b border-gray-800/80 pb-2">
             <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Raza / Especie</p>
             <select
-              value={character?.raza || ''}
-              onChange={(e) => updateField('raza', e.target.value)}
-              disabled={savingField === 'raza'}
+              value={character?.race_id || ''}
+              onChange={(e) => updateField('race_id', e.target.value || null)}
+              disabled={savingField === 'race_id'}
               className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
             >
               <option value="">Selecciona raza...</option>
               {razas.map((raza) => (
-                <option key={raza.id} value={raza.name} className="bg-gray-900 text-white">
+                <option key={raza.id} value={raza.id} className="bg-gray-900 text-white">
                   {raza.name}
                 </option>
               ))}
@@ -398,9 +399,9 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           <div className="border-b border-gray-800/80 pb-2">
             <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Clase Principal</p>
             <select
-              value={character?.main_class_id || character?.class_id || ''}
+              value={character?.class_id || ''}
               onChange={(e) => handleClassChange(e.target.value)}
-              disabled={savingField === 'main_class_id'}
+              disabled={savingField === 'class_id'}
               className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
             >
               <option value="">Selecciona clase...</option>
