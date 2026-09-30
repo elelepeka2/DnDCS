@@ -87,12 +87,16 @@ SQL editor del dashboard de Supabase, y luego `seed.sql`.
 7. **`races.name` usa `name`** mientras el resto del catálogo usa `nombre`, y
    guarda bonos/idiomas/competencias en JSONB/arrays mientras existen tablas
    relacionales (`race_stat_bonuses`, `race_proficiencies`) para lo mismo.
-8. **10 tablas con RLS habilitada y sin policies** (bloqueadas para
-   anon/authenticated): `race_stat_bonuses`, `race_proficiencies`,
-   `class_proficiencies`, `class_features`, `equipment_base`, `spells`,
-   `class_spells`, `character_proficiencies`, `character_equipment`,
-   `character_inventory`. Hoy no rompen nada (vacías/sin uso), pero al
-   implementar las pestañas habrá que agregar policies.
+8. **10 tablas con RLS habilitada y sin policies** — **Resuelto para las
+   tablas de las pestañas (2026-09-28)**: `character_inventory` y
+   `character_equipment` ahora tienen 4 policies owner-scoped cada una
+   (SELECT/INSERT/UPDATE/DELETE) más un índice btree sobre `character_id`,
+   en `20260928000001_feat_character_inventory_equipment_rls.sql`.
+   Quedan 8 tablas de catálogo todavía bloqueadas para
+   anon/authenticated (vacías/sin uso, fuera de alcance de las pestañas):
+   `race_stat_bonuses`, `race_proficiencies`, `class_proficiencies`,
+   `class_features`, `equipment_base`, `spells`, `class_spells`,
+   `character_proficiencies`.
 9. **`class_proficiencies.opciones_cantidad`** existe pero no hay datos —
    verificar si el frontend lo necesita.
 10. **Grants de sequences y routines sin confirmar**: el baseline solo

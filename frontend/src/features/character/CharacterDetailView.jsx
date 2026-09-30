@@ -6,9 +6,9 @@ import { supabase } from '../../services/supabaseClient';
 import { ProfileTab } from './components/ProfileTab';
 import { StatsTab } from './components/StatsTab';
 import { ClassTab } from './components/ClassTab';
-//import { InventoryTab } from './components/InventoryTab';
-//import { EquipmentTab } from './components/EquipmentTab';
-//import { BiographyTab } from './components/BiographyTab';
+import { InventoryTab } from './components/InventoryTab';
+import { EquipmentTab } from './components/EquipmentTab';
+import { BiographyTab } from './components/BiographyTab';
 
 export function CharacterDetailView() {
   const { id } = useParams();
