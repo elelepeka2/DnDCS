@@ -42,3 +42,6 @@ supabase/.temp/
 node_modules/.bin/supabase
 node_modules/.bin/supabase.cmd
 node_modules/.bin/supabase.ps1
+
+# CodeGraph local index
+.codegraph/

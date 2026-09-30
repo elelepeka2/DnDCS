@@ -1,0 +1,7 @@
+# OpenSpec declaration for DnDCS SDD
+# Declares which artifact store this workspace uses. The native dispatcher
+# (gentle-ai sdd-status / sdd-continue) resolves the store from this file.
+# Artifacts themselves live in Engram — no openspec file artifacts are written.
+schema: spec-driven
+sdd:
+  artifact_store: engram
