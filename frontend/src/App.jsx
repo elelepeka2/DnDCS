@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LazyMotion, domMax, m, AnimatePresence, MotionConfig } from 'framer-motion';
-import { supabase } from './services/supabaseClient';
+import { supabase, envConfigured } from './services/supabaseClient';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
@@ -67,6 +67,7 @@ export default function App() {
   const [diceOpen, setDiceOpen] = useState(false);
 
   useEffect(() => {
+    if (!envConfigured) return undefined;
     // Obtener la sesión actual al cargar la app
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -82,7 +83,7 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  if (!envConfigured) {
     return (
       <div className="min-h-screen bg-ink-950 text-ink-50 flex items-center justify-center font-sans p-6">
         <div className="max-w-md w-full bg-ink-900 border border-ink-700 p-8 text-center">
