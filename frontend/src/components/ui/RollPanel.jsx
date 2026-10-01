@@ -1,18 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { backdropVariants, panelVariants } from './motionVariants';
-
-// Deterministic d6 face → base cube orientation (spec: Deterministic d6 Roll).
-// Each face is seated with rotateY/X(±90|180) + translateZ(half); the cube
-// rotation below is the inverse, so face N ends up facing the viewer.
-const FACE_ROTATIONS = {
-  1: { x: 0, y: 0 }, // front
-  2: { x: 0, y: -90 }, // right
-  3: { x: -90, y: 0 }, // top
-  4: { x: 90, y: 0 }, // bottom
-  5: { x: 0, y: 90 }, // left
-  6: { x: 0, y: 180 }, // back
-};
+import {
+  DIE_TYPES,
+  formatChip,
+  formatNotation,
+  normalizeRollEntry,
+  orientationFor,
+  rollDice,
+} from '../../dice/rollDice';
 
 // CSS transform seating each face on the 112px cube (half = 56px)
 const FACE_TRANSFORMS = {
@@ -34,29 +30,16 @@ const PIPS = {
   6: [[0, 0], [0, 1], [0, 2], [2, 0], [2, 1], [2, 2]],
 };
 
-// Pure: same value ⇒ identical orientation. 2-3 extra full turns are derived
-// from the value itself, so the tumble is reproducible (spec: Reproducibility).
-function rotationForFace(value) {
-  const base = FACE_ROTATIONS[value] ?? FACE_ROTATIONS[1];
-  const extraTurns = 2 + (value % 2);
-  return { x: base.x + 360 * extraTurns, y: base.y + 360 * extraTurns };
-}
-
-function rollDie(sides = 6) {
-  const value = Math.floor(Math.random() * sides) + 1;
-  return { value, rotation: rotationForFace(value) };
-}
-
 const HISTORY_KEY = 'dndcs.dice.history';
 const MAX_HISTORY = 5;
 
+// Read-time migration: legacy int entries become single-d6 objects; storage
+// itself is never rewritten on load (design decision 2).
 function readHistory() {
   try {
     const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]');
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((n) => Number.isInteger(n) && n >= 1 && n <= 6)
-      .slice(0, MAX_HISTORY);
+    return parsed.map(normalizeRollEntry).filter(Boolean).slice(0, MAX_HISTORY);
   } catch {
     return [];
   }
@@ -88,12 +71,17 @@ function DieFace({ value }) {
 // FAB → RollPanel: local state only — no store, no supabase, no screen props (design Data Flow)
 export function RollPanel({ isOpen, onClose }) {
   const prefersReduced = useReducedMotion();
+  const [count, setCount] = useState(1);
+  const [sides, setSides] = useState(6);
+  const [modifier, setModifier] = useState(0);
   const [result, setResult] = useState(null);
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [history, setHistory] = useState(readHistory);
+  const hydratedHistory = useRef(history);
 
-  // Last-5 history persists across sessions (batch scope: localStorage)
+  // Last-5 history persists across sessions (batch scope: localStorage).
+  // The first run is skipped so loading never rewrites stored legacy ints.
   useEffect(() => {
+    if (history === hydratedHistory.current) return;
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
     } catch {
@@ -110,11 +98,21 @@ export function RollPanel({ isOpen, onClose }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
+  const showCube = count === 1 && sides === 6;
+  const rotation =
+    result !== null && result.count === 1 && result.sides === 6
+      ? orientationFor(6, result.values[0])
+      : { x: 0, y: 0 };
+
   const handleRoll = () => {
-    const { value, rotation: next } = rollDie(6);
-    setResult(value);
-    setRotation(next);
-    setHistory((prev) => [value, ...prev].slice(0, MAX_HISTORY));
+    const rolled = rollDice(count, sides, modifier);
+    setResult(rolled);
+    setHistory((prev) =>
+      [
+        { count: rolled.count, sides: rolled.sides, values: rolled.values, modifier: rolled.modifier },
+        ...prev,
+      ].slice(0, MAX_HISTORY),
+    );
   };
 
   return (
@@ -150,43 +148,119 @@ export function RollPanel({ isOpen, onClose }) {
                 </button>
               </div>
 
-              {/* CSS 3D cube: perspective on the parent, preserve-3d on the die */}
-              <div className="mb-4 flex items-center justify-center" style={{ perspective: '800px' }}>
-                <m.div
-                  className="relative h-28 w-28"
-                  style={{ transformStyle: 'preserve-3d' }}
-                  animate={{ rotateX: rotation.x, rotateY: rotation.y }}
-                  transition={
-                    prefersReduced
-                      ? { duration: 0 }
-                      : { type: 'spring', stiffness: 220, damping: 18 } // THE sanctioned spring (design dice hero)
-                  }
-                >
-                  {[1, 2, 3, 4, 5, 6].map((face) => (
-                    <DieFace key={face} value={face} />
+              <div className="mb-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-ink-400">Cantidad</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCount((c) => Math.max(1, c - 1))}
+                      aria-label="Reducir cantidad"
+                      className="h-7 w-7 rounded-pill border border-ink-700 bg-ink-800 text-xs font-medium text-ink-400 hover:text-ink-50 transition-colors cursor-pointer"
+                    >
+                      −
+                    </button>
+                    <span className="w-8 text-center font-mono text-sm text-ink-50">{count}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCount((c) => Math.min(20, c + 1))}
+                      aria-label="Aumentar cantidad"
+                      className="h-7 w-7 rounded-pill border border-ink-700 bg-ink-800 text-xs font-medium text-ink-400 hover:text-ink-50 transition-colors cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tipo de dado">
+                  {DIE_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setSides(type)}
+                      aria-pressed={sides === type}
+                      className={
+                        sides === type
+                          ? 'rounded-pill border border-ink-50 bg-ink-50 px-2.5 py-1 font-mono text-xs font-medium text-ink-950 transition-colors cursor-pointer'
+                          : 'rounded-pill border border-ink-700 bg-ink-800 px-2.5 py-1 font-mono text-xs font-medium text-ink-400 hover:text-ink-50 transition-colors cursor-pointer'
+                      }
+                    >
+                      d{type}
+                    </button>
                   ))}
-                </m.div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-ink-400">Modificador</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setModifier((m) => m - 1)}
+                      aria-label="Reducir modificador"
+                      className="h-7 w-7 rounded-pill border border-ink-700 bg-ink-800 text-xs font-medium text-ink-400 hover:text-ink-50 transition-colors cursor-pointer"
+                    >
+                      −
+                    </button>
+                    <span className="w-10 text-center font-mono text-sm text-ink-50">
+                      {modifier >= 0 ? `+${modifier}` : modifier}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setModifier((m) => m + 1)}
+                      aria-label="Aumentar modificador"
+                      className="h-7 w-7 rounded-pill border border-ink-700 bg-ink-800 text-xs font-medium text-ink-400 hover:text-ink-50 transition-colors cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              {/* CSS 3D cube: perspective on the parent, preserve-3d on the die */}
+              {showCube && (
+                <div className="mb-4 flex items-center justify-center" style={{ perspective: '800px' }}>
+                  <m.div
+                    className="relative h-28 w-28"
+                    style={{ transformStyle: 'preserve-3d' }}
+                    animate={{ rotateX: rotation.x, rotateY: rotation.y }}
+                    transition={
+                      prefersReduced
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 220, damping: 18 } // THE sanctioned spring (design dice hero)
+                    }
+                  >
+                    {[1, 2, 3, 4, 5, 6].map((face) => (
+                      <DieFace key={face} value={face} />
+                    ))}
+                  </m.div>
+                </div>
+              )}
 
               <div className="mb-4 text-center" aria-live="polite">
                 {result === null ? (
                   <p className="text-sm text-ink-400">Tira el dado para empezar</p>
                 ) : (
-                  <m.span
-                    key={result}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.1 }}
-                    className="block font-mono text-5xl font-bold text-ink-50"
-                  >
-                    {result}
-                  </m.span>
+                  <>
+                    <span className="block text-xs font-medium uppercase text-ink-400">Total</span>
+                    <m.span
+                      key={formatChip(result)}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.1 }}
+                      className="block font-mono text-5xl font-bold text-ink-50"
+                    >
+                      {result.total}
+                    </m.span>
+                    <span className="mt-2 inline-block rounded-pill border border-ink-700 bg-ink-800 px-3 py-1 font-mono text-sm text-ink-200">
+                      {formatChip(result)}
+                    </span>
+                  </>
                 )}
               </div>
 
               <div className="flex items-center justify-center gap-3">
                 <span className="rounded-pill border border-ink-700 bg-ink-800 px-3 py-1.5 text-xs font-medium text-ink-400">
-                  d6
+                  {formatNotation({ count, sides, modifier })}
                 </span>
                 <button
                   type="button"
@@ -203,12 +277,12 @@ export function RollPanel({ isOpen, onClose }) {
                   <p className="text-sm text-ink-400">Sin tiradas todavía</p>
                 ) : (
                   <ul className="flex flex-wrap gap-2">
-                    {history.map((n, i) => (
+                    {history.map((entry, i) => (
                       <li
-                        key={`${n}-${i}`}
+                        key={`${formatChip(entry)}-${i}`}
                         className="rounded-pill border border-ink-700 bg-ink-800 px-3 py-1 font-mono text-sm text-ink-200"
                       >
-                        {n}
+                        {formatChip(entry)}
                       </li>
                     ))}
                   </ul>
