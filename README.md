@@ -1,97 +1,97 @@
-# DnDCS — Dungeon & Dragons Character Sheet Manager
+# DnDCS — Gestor de Hojas de Personaje de Dungeon & Dragons
 
-Development README — important context for working on this repo.
+README de desarrollo — contexto importante para trabajar en este repositorio.
 
 ## Stack
 
-| Layer | Tech |
+| Capa | Tech |
 |-------|------|
 | Frontend | React 19 + Vite 8 (`frontend/`), Tailwind CSS v4, framer-motion 13 (LazyMotion) |
-| UI icons | lucide-react |
-| Backend/DB | Supabase (remote project) via `@supabase/supabase-js` |
+| Iconos de UI | lucide-react |
+| Backend/DB | Supabase (proyecto remoto) vía `@supabase/supabase-js` |
 | Lint | oxlint |
-| Tests | **None — no test runner exists.** Verification = `npm run build` + `npm run lint` + structural readback |
-| SDD | Engram artifact store (no `openspec/` folder), native dispatcher `gentle-ai sdd-status` |
+| Tests | **Ninguno — no existe test runner.** Verificación = `npm run build` + `npm run lint` + readback estructural |
+| SDD | Almacén de artefactos Engram (sin carpeta `openspec/`), dispatcher nativo `gentle-ai sdd-status` |
 
-## Commands
+## Comandos
 
 ```bash
 cd frontend
-npm run dev      # dev server, port 5173
-npm run build    # production build (must pass before any hand-off)
-npm run lint     # oxlint (exit 0 required; pre-existing warnings in tab logic are tolerated)
+npm run dev      # servidor de desarrollo, puerto 5173
+npm run build    # build de producción (debe pasar antes de cualquier entrega)
+npm run lint     # oxlint (se requiere exit 0; se toleran las advertencias preexistentes en la lógica de tabs)
 ```
 
-The frontend talks to a **remote** Supabase project via `frontend/.env`
-(`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). The local Supabase stack is not
-required to run the app. Versioned schema lives in `supabase/migrations/`.
+El frontend se comunica con un proyecto Supabase **remoto** mediante `frontend/.env`
+(`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). No se requiere el stack local de
+Supabase para ejecutar la app. El esquema versionado vive en `supabase/migrations/`.
 
-## Project layout (frontend/src)
+## Estructura del proyecto (frontend/src)
 
 ```
-App.jsx                     # routes (/login, /register, /dashboard, /character/:id) + LazyMotion tree + dice FAB mount
-index.css                   # @theme design tokens (single source of visual truth)
-pages/                      # Login, Register, Dashboard (+ CreateCharacterModal in components/ui)
+App.jsx                     # rutas (/login, /register, /dashboard, /character/:id) + árbol de LazyMotion + montaje del FAB de dados
+index.css                   # tokens de diseño @theme (fuente única de verdad visual)
+pages/                      # Login, Register, Dashboard (+ CreateCharacterModal en components/ui)
 features/character/
-  CharacterDetailView.jsx   # character shell + 6-tab bar (layoutId pill)
+  CharacterDetailView.jsx   # shell del personaje + barra de 6 tabs (pill con layoutId)
   components/               # ClassTab, InventoryTab, EquipmentTab, BiographyTab, ProfileTab, StatsTab
-components/ui/              # Modal, FloatingDiceButton, RollPanel (canvas 2D dice renderer)
-components/ui/dice/         # CanvasDie + diceGeometry (6 polyhedra, real 3D projection)
-components/decorative/      # AmbientLayer, Particles, LineArt, CharacterSprite (aria-hidden decor)
+components/ui/              # Modal, FloatingDiceButton, RollPanel (renderizador de dados en canvas 2D)
+components/ui/dice/         # CanvasDie + diceGeometry (6 poliedros, proyección 3D real)
+components/decorative/      # AmbientLayer, Particles, LineArt, CharacterSprite (decoración con aria-hidden)
 ```
 
-Data pattern: every component calls the shared `supabase` client directly
-(fetch + debounced autosave). Tabs receive `({character, onCharacterUpdate})`.
+Patrón de datos: cada componente llama directamente al cliente `supabase` compartido
+(fetch + autosave con debounce). Las tabs reciben `({character, onCharacterUpdate})`.
 
-## Design system (post `frontend-redesign`, 2026-09)
+## Sistema de diseño (post `frontend-redesign`, 2026-09)
 
-- **Dark-first minimalist black & white.** Tokens in `frontend/src/index.css` (`@theme`): `ink` gray scale, `signal` red accent (`#FF4F45` — HP-critical/errors/destructive ONLY, ≤3 uses per file), radius (structure 0 / controls 8px / pills 999px), shadows on overlays only.
-- **Typography**: Space Grotesk (`--font-sans`, ≤25 KB gz budget) + system `ui-monospace` for numerals.
-- **Motion (framer-motion)**: `LazyMotion strict domMax` + `MotionConfig reducedMotion="user"`. Shared constants in `features/character/motionVariants.js`: enter 225ms / exit 195ms / desktop 175ms / tab pill 180ms / stagger 20ms. Asymmetric eases; **exactly ONE spring in the whole app** (the dice, 220/18) — springs are reserved for hero moments.
-- **Dice**: floating global FAB → roll panel; **canvas 2D renderer with real 3D projection** (`CanvasDie` + `diceGeometry`) — all six polyhedra (d4 tetrahedron, d6 cube, d8 octahedron, d10 pentagonal trapezohedron, d12 dodecahedron, d20 icosahedron), painter's algorithm, ink-ramp face shading, numbered faces (6/9 underlined), deterministic settle (same value ⇒ same pose), 760ms tumble on roll (rAF, idle after), reduced-motion = instant settled face. Last-5 history in `localStorage` (`dndcs.dice.history`).
-- **Heroes**: Login split-hero (55/45, outline numeral, z-layers); Dashboard hero band with **"DND:DOS"** wordmark + a slowly tumbling d20 (`dash-spin` 24s).
-- **Ambient decor** (`components/decorative/`): aria-hidden fixed layer with far/near zones — dust motes (DOM ≤50, canvas beyond), d20 SVG line-art turning 22s + breathing 8s, static character sprite; CSS keyframes transform/opacity-only, transient will-change, reduced-motion stops loops with content visible.
-- **Bundle budget**: total ≤60 KB gz delta vs pre-redesign baseline (measured: **+48.24 — PASS**, headroom 11.76). Motion sub-ceiling +42.14 vs ≤30 was accepted as an exception (domMax is required by the `layoutId` tab pill).
+- **Minimalista blanco y negro, orientado a oscuro (dark-first).** Tokens en `frontend/src/index.css` (`@theme`): escala de grises `ink`, acento rojo `signal` (`#FF4F45` — SOLO crítico de HP, errores y acciones destructivas, ≤3 usos por archivo), radio (estructura 0 / controles 8px / pills 999px), sombras solo en overlays.
+- **Tipografía**: Space Grotesk (`--font-sans`, presupuesto ≤25 KB gz) + `ui-monospace` del sistema para numerales.
+- **Motion (framer-motion)**: `LazyMotion strict domMax` + `MotionConfig reducedMotion="user"`. Constantes compartidas en `features/character/motionVariants.js`: enter 225ms / exit 195ms / desktop 175ms / tab pill 180ms / stagger 20ms. Eases asimétricos; **exactamente UNA spring en toda la app** (la de los dados, 220/18) — las springs están reservadas para momentos hero.
+- **Dados**: FAB global flotante → panel de roll; **renderizador canvas 2D con proyección 3D real** (`CanvasDie` + `diceGeometry`) — los seis poliedros (d4 tetraedro, d6 cubo, d8 octaedro, d10 trapezoedro pentagonal, d12 dodecaedro, d20 icosaedro), painter's algorithm, shading de caras con rampa de tinta, caras numeradas (6/9 subrayados), settle determinista (mismo valor ⇒ misma pose), tumble de 760ms al tirar (rAF, idle después), reduced-motion = cara asentada instantánea. Historial de las últimas 5 tiradas en `localStorage` (`dndcs.dice.history`).
+- **Héroes**: split-hero de Login (55/45, numeral outline, capas z); banda hero del Dashboard con wordmark **"DND:DOS"** + un d20 que gira lentamente (`dash-spin` 24s).
+- **Decoración ambiental** (`components/decorative/`): capa fixed con aria-hidden y zonas lejanas/cercanas — motas de polvo (DOM ≤50, canvas por encima), line-art SVG de d20 con giro de 22s + respiración de 8s, sprite de personaje estático; keyframes CSS solo de transform/opacity, will-change transitorio, reduced-motion detiene los loops con el contenido visible.
+- **Presupuesto de bundle**: total ≤60 KB gz de delta vs la línea base pre-redesign (medido: **+48.24 — PASS**, holgura 11.76). El subtecho de motion de +42.14 vs ≤30 se aceptó como excepción (domMax lo requiere la tab pill con `layoutId`).
 
-## Conventions (do not break these)
+## Convenciones (no romper estas)
 
-1. **Presentation-only edits in tab/logic files**: never touch handlers, Supabase calls, `useState`/`useEffect` logic — there is no test runner as a safety net. `className`/JSX-structure/copy only.
-2. **No legacy palette utilities**: grep for `(text|bg|border|…)-(gray|slate|indigo|emerald|cyan|rose|sky)-N` must stay at zero. New colors go through `@theme` tokens.
-3. **One spring max** (dice only). Common transitions use eases, not bouncy springs.
-4. Conventional commits, no AI attribution/co-author lines. Example: `feat(frontend): restyle dashboard with design tokens`.
-5. SDD changes run through the dispatcher (`gentle-ai sdd-status --cwd . --json`) — route only by `nextRecommended`; artifact store is Engram (session-bound saves need an explicit `session_id`).
+1. **Ediciones solo de presentación en archivos de tabs/lógica**: nunca tocar handlers, llamadas a Supabase ni la lógica de `useState`/`useEffect` — no hay test runner como red de seguridad. Solo `className`/estructura JSX/copy.
+2. **Sin utilidades de paleta legacy**: el grep de `(text|bg|border|…)-(gray|slate|indigo|emerald|cyan|rose|sky)-N` debe mantenerse en cero. Los colores nuevos pasan por los tokens de `@theme`.
+3. **Máximo una spring** (solo los dados). Las transiciones comunes usan eases, no springs elásticas.
+4. Commits convencionales, sin líneas de atribución o co-autoría. Ejemplo: `feat(frontend): restyle dashboard with design tokens`.
+5. Los cambios SDD pasan por el dispatcher (`gentle-ai sdd-status --cwd . --json`) — enrutar solo por `nextRecommended`; el almacén de artefactos es Engram (los guardados ligados a sesión requieren un `session_id` explícito).
 
-## Git / delivery state
+## Git / estado de entrega
 
-- **Delivered to `develop` and `main`** (owner-authorized push, 2026-10-01). Active work branch `experiment/frontend-redesign` **retained** (not deleted) with the full immersive-ui history.
-- Delivery plan (decided): stacked-to-main onto `develop` — 7 slices (NdX engine → true-3D dice → pseudo-3D dice → login hero → dashboard hero → ambient kit → canvas dice redesign), each ≤400 lines + committed check scripts.
-- Merged history lives on `develop` (character-tabs PRs #2–#5 + immersive-ui).
+- **Entregado en `develop` y `main`** (push autorizado por el propietario, 2026-10-01). La rama de trabajo activa `experiment/frontend-redesign` se **conserva** (no eliminada) con el historial completo de immersive-ui.
+- Plan de entrega (decidido): merges apilados (stacked-to-main) sobre `develop` — 7 lotes (motor NdX → dados true-3D → dados pseudo-3D → hero de login → hero del dashboard → kit ambiental → rediseño de dados en canvas), cada uno ≤400 líneas + scripts de chequeo commiteados.
+- El historial de merges vive en `develop` (PRs #2–#5 de character-tabs + immersive-ui).
 
-## SDD change log (Engram)
+## Registro de cambios SDD (Engram)
 
-| Change | State | Key artifacts |
+| Cambio | Estado | Artefactos clave |
 |--------|-------|---------------|
-| `character-tabs` | archived | inventory/equipment/biography tabs + RLS migration, delivered as 4 stacked PRs |
-| `frontend-redesign` | archived (obs #49) | B&W redesign + motion + CSS-3D dice; verify PASS WITH WARNINGS, 0 CRITICAL |
-| `immersive-ui` | archived (obs #77) | NdX engine, true/pseudo dice, heroes, ambient kit; verify PASS 23/23; post-archive redesign: canvas 2D dice + DND:DOS hero + visible ambient |
+| `character-tabs` | archivado | tabs de inventario/equipo/biografía + migración RLS, entregado como 4 PRs apilados |
+| `frontend-redesign` | archivado (obs #49) | rediseño B&W + motion + dados CSS-3D; verify: PASS con advertencias, 0 críticos |
+| `immersive-ui` | archivado (obs #77) | motor NdX, dados true/pseudo, héroes, kit ambiental; verify PASS 23/23; rediseño post-archivado: dados canvas 2D + hero DND:DOS + ambiental visible |
 
-## PENDING
+## PENDIENTES
 
-### 1. Human QA (no headless browser in env — check scripts cover structure, not pixels)
+### 1. Verificación manual (sin navegador headless en el entorno; los scripts de chequeo cubren estructura, no píxeles)
 
-Run `cd frontend && npm run dev` and check:
+Ejecutar `cd frontend && npm run dev` y verificar:
 
-- [ ] **Dice**: roll each type d4–d20 → tumble looks physical, settled face matches the chip result, DPR/retina crispness, compact 40px row legible
-- [ ] **Dashboard hero**: "DND:DOS" wordmark + tumbling d20 visible; reduced-motion stops the spin, content stays
-- [ ] **Ambient**: motes/lines visibly drifting on all routes; reduced-motion stops loops
-- [ ] **S5** DevTools: transitions measure ≈225/195/175/180ms, stagger 20ms (neither sluggish nor jumpy)
-- [ ] **S7** Switch tabs → pill slides smoothly (180ms, no bounce)
-- [ ] **S9/S10** OS reduced-motion ON → fades/instant, no blocked/invisible areas
-- [ ] **S12** Tap the dice FAB on Login, Dashboard, and character screens → panel opens in place
+- [ ] **Dados**: tirar cada tipo d4–d20 → el tumble se ve físico, la cara asentada coincide con el resultado del chip, nitidez DPR/retina, fila compacta de 40px legible
+- [ ] **Hero del Dashboard**: wordmark "DND:DOS" + d20 girando visible; reduced-motion detiene el giro, el contenido permanece
+- [ ] **Ambiental**: motas/líneas derivando visiblemente en todas las rutas; reduced-motion detiene los loops
+- [ ] **S5** DevTools: las transiciones miden ≈225/195/175/180ms, stagger 20ms (ni lentas ni bruscas)
+- [ ] **S7** Cambiar de tabs → la pill se desliza suavemente (180ms, sin rebote)
+- [ ] **S9/S10** reduced-motion del SO activado → fades/instantáneo, sin áreas bloqueadas/invisibles
+- [ ] **S12** Tocar el FAB de dados en Login, Dashboard y pantallas de personaje → el panel se abre en el lugar
 
-### 2. Known minor deviations (accepted, non-blocking)
+### 2. Desviaciones menores conocidas (aceptadas, no bloqueantes)
 
-- Dice history persisted in `localStorage` instead of the design's `useState` (spec-silent).
-- d4 settles with the rolled face flat-on (1 visible face) — geometrically forced by the face-at-camera contract; a 3-face pyramid rest is a one-line special case if desired.
-- `s6` check script hardcodes the other scripts' counts — update in lockstep on future changes.
-- Verify report was persisted as an explicitly-labeled **unvalidated save** (validator command missing in installed gentle-ai 3.7.0).
+- Historial de dados persistido en `localStorage` en lugar del `useState` del diseño (silencio en la spec).
+- El d4 se asienta con la cara tirada hacia adelante (1 cara visible) — forzado geométricamente por el contrato cara-a-la-cámara; un reposo de pirámide de 3 caras sería un caso especial de una línea si se desea.
+- El script de chequeo `s6` tiene hardcodeados los conteos de los demás scripts — actualizar en lockstep ante cambios futuros.
+- El informe de verify se persistió como un **guardado sin validar** etiquetado explícitamente (falta el comando validador en gentle-ai 3.7.0 instalado).
