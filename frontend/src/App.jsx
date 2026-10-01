@@ -82,6 +82,23 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    return (
+      <div className="min-h-screen bg-ink-950 text-ink-50 flex items-center justify-center font-sans p-6">
+        <div className="max-w-md w-full bg-ink-900 border border-ink-700 p-8 text-center">
+          <h1 className="text-xl font-bold mb-3">Falta configuración de Supabase</h1>
+          <p className="text-ink-400 text-sm leading-relaxed">
+            Copiá <code className="text-ink-50">frontend/.env.example</code> a{' '}
+            <code className="text-ink-50">frontend/.env</code> y completá{' '}
+            <code className="text-ink-50">VITE_SUPABASE_URL</code> y{' '}
+            <code className="text-ink-50">VITE_SUPABASE_ANON_KEY</code> con las claves de tu
+            proyecto (Dashboard &gt; Project Settings &gt; API Keys).
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-ink-950 text-ink-50 flex items-center justify-center font-sans">
