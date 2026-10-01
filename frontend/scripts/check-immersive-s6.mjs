@@ -34,6 +34,12 @@ check('Canvas loop gated by prefers-reduced-motion', particles.includes('prefers
 check('Motes are deterministic (seeded PRNG)', particles.includes('mulberry32') && !particles.includes('Math.random'));
 check('DOM motes ≤50 (budget)', /for \(let i = 0; i < count/.test(particles), 'field loop bounded by clamped count');
 check('Particles aria-hidden', particles.includes('aria-hidden="true"'));
+check('Motes VISIBLE: 2-5px size maker', particles.includes('size: Math.round(rand() * 3 + 2)'));
+check('Motes VISIBLE: peak alpha 0.5-0.9', particles.includes('peak: (rand() * 0.4 + 0.5).toFixed(2)'));
+check('Motes VISIBLE: snappy 3-8s loop', particles.includes('dur: (rand() * 5 + 3).toFixed(1)'));
+check('Motes VISIBLE: real drift ±45/±35px', particles.includes('dx: Math.round(rand() * 90 - 45)') && particles.includes('dy: Math.round(rand() * 70 - 35)'));
+check('Canvas motes use brighter ink-400', particles.includes('--color-ink-400'));
+
 
 // --- IMM-A1 Present: aria-hidden decor --------------------------------------
 check('AmbientLayer root aria-hidden', ambient.includes('aria-hidden="true"'));
@@ -74,6 +80,17 @@ check(
   'No width/height/color/margin/left/top animation in keyframes',
   !/width|height|color|margin|padding|left|top|right|bottom/.test(keyframes.map((m) => m[2]).join('\n')),
 );
+const spinDur = css.match(/\.ambient-loop\s*{[^}]*animation:\s*ambient-spin (\d+)s/);
+check(
+  'LineArt spin perceivable: 18-30s loop',
+  !!spinDur && Number(spinDur[1]) >= 18 && Number(spinDur[1]) <= 30,
+  spinDur ? `ambient-spin ${spinDur[1]}s` : 'missing',
+);
+check('LineArt pulses via ambient-breathe', css.includes('ambient-breathe'));
+check('Zones drift via ambient-drift', css.includes('ambient-drift'));
+check('Far zone drifts (parallax)', /\.ambient-zone--far\s*{[^}]*animation:\s*ambient-drift/.test(css));
+check('Near zone drifts counter-phased', /\.ambient-zone--near\s*{[^}]*animation:\s*ambient-drift[^}]*alternate-reverse/.test(css));
+
 
 // --- design decision 9: transient will-change --------------------------------
 const willChangeRules = [...css.matchAll(/([^{}]+)\{([^}]*will-change[^}]*)\}/g)];
@@ -82,7 +99,7 @@ check(
   willChangeRules.length === 1 && willChangeRules[0][1].includes('ambient-animating'),
   willChangeRules.length === 0 ? 'no will-change found' : `outside scope: ${willChangeRules.map((w) => w[1].trim()).join(' | ')}`,
 );
-check('will-change targets only animating elements', /\.ambient-animating \.particle,\s*\.ambient-animating \.ambient-loop/.test(css));
+check('will-change targets only animating elements', /\.ambient-animating \.particle,\s*\.ambient-animating \.ambient-loop,\s*\.ambient-animating \.ambient-zone/.test(css));
 check('JS applies will-change transiently (add)', ambient.includes("classList.add('ambient-animating')"));
 check('JS releases will-change (remove on unmount/reduced)', ambient.includes("classList.remove('ambient-animating')"));
 check('Applied after first paint (rAF)', ambient.includes('requestAnimationFrame(sync)'));
@@ -94,6 +111,14 @@ check('S6 has explicit reduced-motion gate', !!reduceBlock);
 check(
   'Reduced motion disables ambient loops',
   !!reduceBlock && /animation:\s*none/.test(reduceBlock[1]),
+);
+check(
+  'Reduced motion gate covers particles + loop + zones',
+  !!reduceBlock && /\.particle,\s*\.ambient-loop,\s*\.ambient-zone/.test(reduceBlock[0]),
+);
+check(
+  'Reduced motion hides NOTHING (no display/visibility none)',
+  !!reduceBlock && !/display:\s*none|visibility:\s*hidden/.test(reduceBlock[1]),
 );
 check(
   'Reduced motion hides NOTHING (no display/visibility none)',

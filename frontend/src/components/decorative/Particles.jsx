@@ -20,6 +20,9 @@ function mulberry32(seed) {
 
 // Seeded field: position (%), size (px), loop duration/delay (s), drift
 // vector (px) and peak opacity — all consumed as CSS custom properties.
+// VISIBLE by design (redesign): 2–5px motes, peak alpha 0.5–0.9, snappy
+// 3–8s loops with real drift across the screen — never the old 1–3px,
+// 0.35–0.6 alpha whisper.
 function makeMotes(count, seed = 7) {
   const rand = mulberry32(seed);
   const motes = [];
@@ -27,12 +30,12 @@ function makeMotes(count, seed = 7) {
     motes.push({
       x: Math.round(rand() * 92 + 4), // 4–96 %
       y: Math.round(rand() * 92 + 4),
-      size: Math.round(rand() * 2 + 1), // 1–3 px
-      dur: (rand() * 9 + 7).toFixed(1), // 7–16 s loop
-      delay: (rand() * 6).toFixed(2), // 0–6 s stagger
-      dx: Math.round(rand() * 60 - 30), // ±30 px drift
-      dy: Math.round(rand() * 40 - 20),
-      peak: (rand() * 0.25 + 0.35).toFixed(2), // 0.35–0.6 alpha
+      size: Math.round(rand() * 3 + 2), // 2–5 px
+      dur: (rand() * 5 + 3).toFixed(1), // 3–8 s loop
+      delay: (rand() * 2.5).toFixed(2), // 0–2.5 s stagger
+      dx: Math.round(rand() * 90 - 45), // ±45 px drift
+      dy: Math.round(rand() * 70 - 35),
+      peak: (rand() * 0.4 + 0.5).toFixed(2), // 0.5–0.9 alpha
     });
   }
   return motes;
@@ -50,8 +53,8 @@ function CanvasMotes({ count }) {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     const ink =
       getComputedStyle(document.documentElement)
-        .getPropertyValue('--color-ink-700')
-        .trim() || '#2A2A2F';
+        .getPropertyValue('--color-ink-400')
+        .trim() || '#8A8A90';
     const motes = makeMotes(count);
     let raf = 0;
 

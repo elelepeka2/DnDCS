@@ -217,14 +217,16 @@ body {
   inset: 0;
 }
 
-/* Far zone: the tabletop horizon — d20 outline top-right, sparse motes. */
+/* Far zone: the tabletop horizon — d20 outline top-right, sparse motes.
+   VISIBLE (redesign): bigger glyph, opacity up from 0.35, and the whole
+   zone drifts slowly while the d20 spins (see .ambient-zone--far below). */
 .ambient-zone--far .lineart--d20 {
   position: absolute;
   top: 7%;
   right: 6%;
-  width: clamp(3.5rem, 8vw, 7rem);
+  width: clamp(4.5rem, 10vw, 9rem);
   height: auto;
-  opacity: 0.35;
+  opacity: 0.65;
 }
 
 /* Near zone: the table's edge — the adventurer stands bottom-left. */
@@ -237,6 +239,17 @@ body {
   opacity: 0.9;
 }
 
+/* Zone drift = parallax between the two layers: far recedes slower, near
+   moves quicker and counter-phased — the tabletop reads LIVE, not frozen.
+   transform-only; the reduced-motion gate below stops both. */
+.ambient-zone--far {
+  animation: ambient-drift 26s ease-in-out infinite alternate;
+}
+
+.ambient-zone--near {
+  animation: ambient-drift 18s ease-in-out infinite alternate-reverse;
+}
+
 .ambient-canvas {
   position: absolute;
   inset: 0;
@@ -245,7 +258,8 @@ body {
 }
 
 /* Motes: deterministic inline vars; drift + fade loop. Base opacity keeps
-   them visible (at peak alpha) when reduced motion stops the loop. */
+   them visible (at peak alpha) when reduced motion stops the loop. Brighter
+   ink-400 fill — clearly perceptible against ink-950 (redesign). */
 .particle {
   position: absolute;
   left: var(--x);
@@ -253,7 +267,7 @@ body {
   width: var(--size);
   height: var(--size);
   border-radius: 999px;
-  background: var(--color-ink-700);
+  background: var(--color-ink-400);
   opacity: var(--peak, 0.5);
   animation: ambient-mote var(--dur) linear var(--delay) infinite;
 }
@@ -262,7 +276,8 @@ body {
    first paint and removes it on unmount / reduced motion — never static
    (design decision 9). */
 .ambient-animating .particle,
-.ambient-animating .ambient-loop {
+.ambient-animating .ambient-loop,
+.ambient-animating .ambient-zone {
   will-change: transform, opacity;
 }
 
@@ -291,8 +306,28 @@ body {
   }
 }
 
+/* The d20 line art now turns at a perceivable 22s (was 60s) and breathes
+   opacity on top — visible motion, still transform/opacity only. */
 .ambient-loop {
-  animation: ambient-spin 60s linear infinite;
+  animation: ambient-spin 22s linear infinite, ambient-breathe 8s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-breathe {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(16px, 12px, 0);
+  }
 }
 
 /* Reduced motion: loops stop, decor stays visible — nothing hides
@@ -300,7 +335,8 @@ body {
    durations; this ambient-scoped gate makes the intent explicit. */
 @media (prefers-reduced-motion: reduce) {
   .particle,
-  .ambient-loop {
+  .ambient-loop,
+  .ambient-zone {
     animation: none !important;
   }
 }
