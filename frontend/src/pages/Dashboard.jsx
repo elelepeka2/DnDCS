@@ -32,15 +32,15 @@ export function Dashboard({ user }) {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6 font-sans">
-      <header className="max-w-5xl mx-auto flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+    <div className="min-h-screen bg-ink-950 text-ink-50 p-6">
+      <header className="max-w-5xl mx-auto flex justify-between items-center mb-8 border-b border-ink-700 pb-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Panel de Aventureros</h1>
-          <p className="text-sm text-gray-400 mt-1">{user?.email}</p>
+          <h1 className="text-2xl font-bold tracking-tight">Panel de Aventureros</h1>
+          <p className="text-sm text-ink-400 mt-1">{user?.email}</p>
         </div>
         <button 
           onClick={() => supabase.auth.signOut()}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-sm font-semibold rounded-lg transition cursor-pointer"
+          className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
         >
           Salir
         </button>
@@ -52,7 +52,7 @@ export function Dashboard({ user }) {
           {characters.length > 0 && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg shadow-lg transition flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 bg-ink-50 hover:bg-ink-200 text-ink-950 text-sm font-bold rounded-control transition-colors flex items-center gap-2 cursor-pointer"
             >
               <span>+</span> Crear Personaje
             </button>
@@ -60,13 +60,13 @@ export function Dashboard({ user }) {
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500 py-12">Cargando personajes...</p>
+          <p className="text-center text-ink-400 py-12">Cargando personajes...</p>
         ) : characters.length === 0 ? (
-          <div className="text-center py-16 bg-gray-900/50 rounded-2xl border border-gray-800/80">
-            <p className="text-gray-400 text-lg mb-6">No tienes personajes creados aún.</p>
+          <div className="text-center py-16 bg-ink-900 border border-ink-700">
+            <p className="text-ink-400 text-lg mb-6">No tienes personajes creados aún.</p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition inline-flex items-center gap-2 cursor-pointer"
+              className="px-6 py-3 bg-ink-50 hover:bg-ink-200 text-ink-950 font-bold rounded-control transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               <span>+</span> Crear Personaje
             </button>
@@ -77,11 +77,11 @@ export function Dashboard({ user }) {
               <div
                 key={char.id}
                 onClick={() => navigate(`/character/${char.id}`)}
-                className="bg-gray-900 border border-gray-800 hover:border-indigo-500/50 p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between shadow-md hover:scale-[1.01]"
+                className="bg-ink-900 border border-ink-700 hover:border-ink-400 p-4 cursor-pointer transition-colors flex items-center justify-between"
               >
                 {/* Lado Izquierdo: Foto y Nombre */}
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-950 rounded-lg border border-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 bg-ink-950 border border-ink-700 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {char.avatar_url ? (
                       <img 
                         src={char.avatar_url} 
@@ -89,22 +89,22 @@ export function Dashboard({ user }) {
                         className="w-full h-full object-cover" 
                       />
                     ) : (
-                      <span className="text-xl font-black text-indigo-400 uppercase">
+                      <span className="text-xl font-bold text-ink-400 uppercase">
                         {char.nombre.charAt(0)}
                       </span>
                     )}
                   </div>
-                  <h3 className="font-bold text-lg text-white">
+                  <h3 className="font-bold text-lg text-ink-50">
                     {char.nombre}
                   </h3>
                 </div>
 
                 {/* Lado Derecho: Nivel y Creador */}
                 <div className="text-right">
-                  <p className="text-sm font-bold text-indigo-400">
+                  <p className="text-sm font-bold text-ink-200">
                     Nivel {char.nivel || 1}
                   </p>
-                  <p className="text-[11px] text-gray-500 font-medium">
+                  <p className="text-xs text-ink-400 font-medium">
                     {user?.email || 'Creador desconocido'}
                   </p>
                 </div>
