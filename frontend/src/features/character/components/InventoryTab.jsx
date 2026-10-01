@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { m } from 'framer-motion';
 import { supabase } from '../../../services/supabaseClient';
+import { listStagger, listItem } from '../../../components/ui/motionVariants';
 
 // Orden alfabetico por nombre, tolerante a acentos (coincide con .order('nombre'))
 const porNombre = (a, b) => a.nombre.localeCompare(b.nombre, 'es');
@@ -153,10 +155,11 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
       ) : items.length === 0 ? (
         <p className="text-sm font-mono text-ink-400">Sin objetos en el inventario.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <m.ul variants={listStagger} initial="hidden" animate="show" className="flex flex-col gap-3">
           {items.map((item) => (
-            <li
+            <m.li
               key={item.id}
+              variants={listItem}
               className="flex flex-wrap items-center gap-3 bg-ink-950 border border-ink-700 p-3"
             >
               {/* Nombre / renombrado en linea */}
@@ -245,9 +248,9 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
                   {savingField === `borrar-${item.id}` ? 'Borrando...' : 'Eliminar'}
                 </button>
               </div>
-            </li>
+            </m.li>
           ))}
-        </ul>
+        </m.ul>
       )}
     </div>
   );

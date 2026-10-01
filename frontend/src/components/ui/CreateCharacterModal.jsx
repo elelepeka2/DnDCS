@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { AnimatePresence, m } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
+import { backdropVariants, panelVariants } from './motionVariants';
 
 export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, userId }) {
   const [nombre, setNombre] = useState('');
   const [loading, setLoading] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,8 +53,21 @@ export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, user
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-ink-900 border border-ink-700 p-6 w-full max-w-md text-ink-50 shadow-2xl">
+    // inert + pointer-events-none make the overlay non-interactive during its exit (spec: Modal enter/exit)
+    <div inert={!isOpen} aria-hidden={!isOpen} className={isOpen ? undefined : 'pointer-events-none'}>
+      <AnimatePresence>
+        {isOpen && (
+          <m.div
+            variants={backdropVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          >
+            <m.div
+              variants={panelVariants}
+              className="bg-ink-900 border border-ink-700 p-6 w-full max-w-md text-ink-50 shadow-2xl"
+            >
         <h2 className="text-xl font-bold mb-4">Nuevo Aventurero</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,7 +103,10 @@ export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, user
             </button>
           </div>
         </form>
-      </div>
+            </m.div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

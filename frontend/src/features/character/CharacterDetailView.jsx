@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { m } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
 
 // Pestañas del personaje
@@ -9,6 +10,7 @@ import { ClassTab } from './components/ClassTab';
 import { InventoryTab } from './components/InventoryTab';
 import { EquipmentTab } from './components/EquipmentTab';
 import { BiographyTab } from './components/BiographyTab';
+import { tabPillTransition } from '../../components/ui/motionVariants';
 
 export function CharacterDetailView() {
   const { id } = useParams();
@@ -128,68 +130,86 @@ export function CharacterDetailView() {
         <button
           onClick={() => setActiveTab('profile')}
           data-tab="profile"
-          className={`px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
+          className={`relative px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
             activeTab === 'profile'
-              ? 'bg-ink-50 text-ink-950'
+              ? 'text-ink-950'
               : 'text-ink-400 hover:text-ink-50 hover:bg-ink-800'
           }`}
         >
-          Perfil
+          {activeTab === 'profile' && (
+            <m.span layoutId="tab-pill" className="absolute inset-0 rounded-pill bg-ink-50" transition={tabPillTransition} />
+          )}
+          <span className="relative z-10">Perfil</span>
         </button>
         <button
           onClick={() => setActiveTab('class')}
           data-tab="class"
-          className={`px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
+          className={`relative px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
             activeTab === 'class'
-              ? 'bg-ink-50 text-ink-950'
+              ? 'text-ink-950'
               : 'text-ink-400 hover:text-ink-50 hover:bg-ink-800'
           }`}
         >
-          Clase
+          {activeTab === 'class' && (
+            <m.span layoutId="tab-pill" className="absolute inset-0 rounded-pill bg-ink-50" transition={tabPillTransition} />
+          )}
+          <span className="relative z-10">Clase</span>
         </button>
         <button
           onClick={() => setActiveTab('stats')}
           data-tab="stats"
-          className={`px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
+          className={`relative px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
             activeTab === 'stats'
-              ? 'bg-ink-50 text-ink-950'
+              ? 'text-ink-950'
               : 'text-ink-400 hover:text-ink-50 hover:bg-ink-800'
           }`}
         >
-          Estadísticas
+          {activeTab === 'stats' && (
+            <m.span layoutId="tab-pill" className="absolute inset-0 rounded-pill bg-ink-50" transition={tabPillTransition} />
+          )}
+          <span className="relative z-10">Estadísticas</span>
         </button>
         <button
           onClick={() => setActiveTab('inventory')}
           data-tab="inventory"
-          className={`px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
+          className={`relative px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
             activeTab === 'inventory'
-              ? 'bg-ink-50 text-ink-950'
+              ? 'text-ink-950'
               : 'text-ink-400 hover:text-ink-50 hover:bg-ink-800'
           }`}
         >
-          Inventario
+          {activeTab === 'inventory' && (
+            <m.span layoutId="tab-pill" className="absolute inset-0 rounded-pill bg-ink-50" transition={tabPillTransition} />
+          )}
+          <span className="relative z-10">Inventario</span>
         </button>
         <button
           onClick={() => setActiveTab('equipment')}
           data-tab="equipment"
-          className={`px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
+          className={`relative px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
             activeTab === 'equipment'
-              ? 'bg-ink-50 text-ink-950'
+              ? 'text-ink-950'
               : 'text-ink-400 hover:text-ink-50 hover:bg-ink-800'
           }`}
         >
-          Equipamiento
+          {activeTab === 'equipment' && (
+            <m.span layoutId="tab-pill" className="absolute inset-0 rounded-pill bg-ink-50" transition={tabPillTransition} />
+          )}
+          <span className="relative z-10">Equipamiento</span>
         </button>
         <button
           onClick={() => setActiveTab('biography')}
           data-tab="biography"
-          className={`px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
+          className={`relative px-4 py-2 text-sm font-bold tracking-wide rounded-pill whitespace-nowrap transition-colors cursor-pointer ${
             activeTab === 'biography'
-              ? 'bg-ink-50 text-ink-950'
+              ? 'text-ink-950'
               : 'text-ink-400 hover:text-ink-50 hover:bg-ink-800'
           }`}
         >
-          Biografía
+          {activeTab === 'biography' && (
+            <m.span layoutId="tab-pill" className="absolute inset-0 rounded-pill bg-ink-50" transition={tabPillTransition} />
+          )}
+          <span className="relative z-10">Biografía</span>
         </button>
       </div>
 
