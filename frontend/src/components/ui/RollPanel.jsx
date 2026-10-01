@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { backdropVariants, panelVariants } from './motionVariants';
-import { TrueDie } from './dice/TrueDie';
-import { PseudoDie } from './dice/PseudoDie';
+import { CanvasDie } from './dice/CanvasDie';
 import {
   DIE_TYPES,
   formatChip,
@@ -10,12 +9,6 @@ import {
   normalizeRollEntry,
   rollDice,
 } from '../../dice/rollDice';
-
-// Renderer tiers (design decision 4): d4/d6/d8 are true CSS-3D (TrueDie, any
-// count); d10/d12/d20 are pseudo-3D silhouettes (PseudoDie) — count===1 only,
-// beyond one die they stay numeral+chip like the S1 interim.
-const TRUE_TIER = [4, 6, 8];
-const PSEUDO_TIER = [10, 12, 20];
 
 const HISTORY_KEY = 'dndcs.dice.history';
 const MAX_HISTORY = 5;
@@ -62,13 +55,10 @@ export function RollPanel({ isOpen, onClose }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  // True tier renders dice for any count; the pseudo tier is a single hero
-  // silhouette (count===1) — beyond that d10/d12/d20 stay numeral+chip. Values
-  // settle only when the result matches the pending config, so changing
-  // Cantidad or type returns every die to its idle pose (value 1).
-  const showTrueDie = TRUE_TIER.includes(sides);
-  const showPseudoDie = PSEUDO_TIER.includes(sides) && count === 1;
-  const showDie = showTrueDie || showPseudoDie;
+  // CanvasDie renders every type as a real 3D polyhedron — one tier for all
+  // six dice: hero size at count 1, compact row beyond. Values settle only
+  // when the result matches the pending config, so changing Cantidad or type
+  // returns every die to its idle pose (value 1).
   const settled = result !== null && result.count === count && result.sides === sides;
   const diceValues = settled ? result.values : Array.from({ length: count }, () => 1);
 
@@ -184,32 +174,19 @@ export function RollPanel({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Tiered dies: TrueDie hero (count 1) or compact row; PseudoDie hero at count 1 */}
-              {showDie && (
-                <div className="mb-4 flex flex-wrap items-center justify-center gap-2" aria-hidden="true">
-                  {diceValues.map((value, i) =>
-                    showPseudoDie ? (
-                      <PseudoDie
-                        key={`${sides}-${i}`}
-                        sides={sides}
-                        value={value}
-                        settled={settled}
-                        size={112}
-                        prefersReduced={prefersReduced}
-                      />
-                    ) : (
-                      <TrueDie
-                        key={`${sides}-${i}`}
-                        sides={sides}
-                        value={value}
-                        settled={settled}
-                        size={count === 1 ? 112 : 40}
-                        prefersReduced={prefersReduced}
-                      />
-                    ),
-                  )}
-                </div>
-              )}
+              {/* CanvasDie: all six types, hero at count 1, compact row beyond */}
+              <div className="mb-4 flex flex-wrap items-center justify-center gap-2" aria-hidden="true">
+                {diceValues.map((value, i) => (
+                  <CanvasDie
+                    key={`${sides}-${i}`}
+                    sides={sides}
+                    value={value}
+                    settled={settled}
+                    size={count === 1 ? 112 : 40}
+                    prefersReduced={prefersReduced}
+                  />
+                ))}
+              </div>
 
               <div className="mb-4 text-center" aria-live="polite">
                 {result === null ? (
@@ -221,7 +198,7 @@ export function RollPanel({ isOpen, onClose }) {
                       key={formatChip(result)}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 0.1 }}
+                      transition={{ type: 'spring', stiffness: 220, damping: 18 }} // THE sanctioned spring
                       className="block font-mono text-5xl font-bold text-ink-50"
                     >
                       {result.total}

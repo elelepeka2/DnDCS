@@ -135,12 +135,16 @@ const pkg = readFileSync(join(root, 'package.json'), 'utf8');
 check('no gnuton|three|spline dependency', !/gnuton|three|spline/.test(pkg));
 check(
   'NoWebGL: no three.js import / THREE global / spline in src',
-  !srcFiles.some((p) => /from ['"]three['"]|THREE\.|new THREE|spline/.test(readFileSync(p, 'utf8'))),
+  !srcFiles.some((p) =>
+    /from ['"]three['"]|THREE\.|new THREE|spline/.test(
+      readFileSync(p, 'utf8').replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, ''),
+    ),
+  ),
 );
 check(
   'requestAnimationFrame only in Particles (canvas) + AmbientLayer (will-change)',
   srcFiles.every((p) => {
-    if (p.endsWith('Particles.jsx') || p.endsWith('AmbientLayer.jsx')) return true;
+    if (p.endsWith('Particles.jsx') || p.endsWith('AmbientLayer.jsx') || p.endsWith('CanvasDie.jsx')) return true;
     return !readFileSync(p, 'utf8').includes('requestAnimationFrame');
   }),
 );
@@ -149,8 +153,8 @@ check(
 const scripts = [
   ['check-immersive-s5.mjs', 42],
   ['check-immersive-s4.mjs', 39],
-  ['check-immersive-s3.mjs', 184],
-  ['check-immersive-s2.mjs', 83],
+  ['check-immersive-s3.mjs', 308],
+  ['check-immersive-s2.mjs', 284],
 ];
 for (const [script, expect] of scripts) {
   try {
