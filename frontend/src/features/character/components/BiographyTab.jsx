@@ -98,10 +98,10 @@ export function BiographyTab({ character, onCharacterUpdate }) {
   }, [persist]);
 
   return (
-    <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl backdrop-blur-sm">
+    <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8">
       <div className="flex items-baseline justify-between gap-4 mb-6">
-        <h2 className="text-xl font-bold text-white">Biografía</h2>
-        <p className="text-xs font-mono text-gray-500">Se guarda solo al dejar de escribir</p>
+        <h2 className="text-xl font-bold text-ink-50">Biografía</h2>
+        <p className="text-xs font-mono text-ink-400">Se guarda solo al dejar de escribir</p>
       </div>
 
       <div className="flex flex-col gap-6">
@@ -110,12 +110,12 @@ export function BiographyTab({ character, onCharacterUpdate }) {
             <div className="flex items-baseline justify-between gap-3 mb-2">
               <label
                 htmlFor={`bio-${key}`}
-                className="block text-xs font-mono font-bold text-gray-400 uppercase"
+                className="block text-xs font-mono font-bold text-ink-400 uppercase"
               >
                 {label}
               </label>
               {savingField === key && (
-                <span className="text-xs font-mono text-indigo-400">Guardando...</span>
+                <span className="text-xs font-mono text-ink-400">Guardando...</span>
               )}
             </div>
             <textarea
@@ -124,7 +124,7 @@ export function BiographyTab({ character, onCharacterUpdate }) {
               onChange={(event) => handleChange(key, event.target.value)}
               placeholder={placeholder}
               rows={4}
-              className="w-full bg-gray-950 border border-gray-800 text-white font-medium text-sm leading-relaxed rounded-xl p-3 focus:outline-none focus:border-indigo-500 resize-y placeholder:text-gray-600"
+              className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm leading-relaxed rounded-control p-3 focus:outline-none focus:border-ink-400 resize-y placeholder:text-ink-400"
             />
           </div>
         ))}

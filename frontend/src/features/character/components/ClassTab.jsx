@@ -54,13 +54,13 @@ export function ClassTab({ character, onCharacterUpdate }) {
   };
 
   return (
-    <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl backdrop-blur-sm">
-      <h2 className="text-xl font-bold text-white mb-6">Gestión de Clase y Subclase</h2>
+    <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8">
+      <h2 className="text-xl font-bold text-ink-50 mb-6">Gestión de Clase y Subclase</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Selector de Clase */}
         <div>
-          <label className="block text-xs font-mono font-bold text-gray-400 uppercase mb-2">
+          <label className="block text-xs font-mono font-bold text-ink-400 uppercase mb-2">
             Clase Principal
           </label>
           <select
@@ -72,7 +72,7 @@ export function ClassTab({ character, onCharacterUpdate }) {
               handleSaveClass(newId, null);
             }}
             disabled={saving}
-            className="w-full bg-gray-950 border border-gray-800 text-white font-semibold text-sm rounded-xl p-3 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer"
           >
             <option value="">Selecciona una clase...</option>
             {classesList.map((cls) => (
@@ -85,7 +85,7 @@ export function ClassTab({ character, onCharacterUpdate }) {
 
         {/* Selector de Subclase / Eidolon */}
         <div>
-          <label className="block text-xs font-mono font-bold text-gray-400 uppercase mb-2">
+          <label className="block text-xs font-mono font-bold text-ink-400 uppercase mb-2">
             Subclase / Forma Base
           </label>
           <select
@@ -96,7 +96,7 @@ export function ClassTab({ character, onCharacterUpdate }) {
               handleSaveClass(selectedClassId, newSubId);
             }}
             disabled={saving || !selectedClassId || subclassesList.length === 0}
-            className="w-full bg-gray-950 border border-gray-800 text-white font-semibold text-sm rounded-xl p-3 focus:outline-none focus:border-indigo-500 cursor-pointer disabled:opacity-50"
+            className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer disabled:opacity-50"
           >
             <option value="">
               {!selectedClassId
