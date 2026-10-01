@@ -25,7 +25,7 @@ const h2Start = css.indexOf('/* ── IMM-H2 Dashboard hero band');
 const nextSection = css.indexOf('/* ── IMM-A1 Ambient kit');
 const dashCss = css.slice(h2Start, nextSection === -1 ? undefined : nextSection);
 
-// --- IMM-H2 Band: band above "Tus Personajes" with kicker ------------------
+// --- IMM-H2 Band: band above "Tus Personajes" with the DND:DOS wordmark -----
 const bandStart = dash.indexOf('<section className="dash-band"');
 const tusIdx = dash.indexOf('Tus Personajes');
 check('Dashboard has .dash-band section', bandStart !== -1);
@@ -46,13 +46,14 @@ check(
 const bandBlock = dash.match(/<section className="dash-band"[\s\S]*?<\/section>/);
 check('Band section block extracted', !!bandBlock);
 check(
-  'Kicker "La mesa espera" inside band',
-  !!bandBlock && bandBlock[0].includes('La mesa espera'),
+  'Wordmark "DND:DOS" inside band',
+  !!bandBlock && bandBlock[0].includes('DND:DOS'),
 );
 check(
-  'Kicker is real text (p, not aria-hidden)',
-  !!bandBlock && /<p className="dash-kicker">La mesa espera<\/p>/.test(bandBlock[0]),
+  'Wordmark is real text (p, not aria-hidden)',
+  !!bandBlock && /<p className="dash-wordmark">DND:DOS<\/p>/.test(bandBlock[0]),
 );
+check('Old kicker "La mesa espera" removed', !bandBlock[0].includes('La mesa espera'));
 check(
   'Three tonal planes (far/mid/near)',
   !!bandBlock && (bandBlock[0].match(/className="dash-plane/g) || []).length === 3,
@@ -61,6 +62,10 @@ check(
 check(
   'Planes are aria-hidden decorative',
   !!bandBlock && (bandBlock[0].match(/aria-hidden="true"/g) || []).length >= 3,
+);
+check(
+  'Visible animated hero element: canvas d20',
+  !!bandBlock && bandBlock[0].includes('CanvasDie') && bandBlock[0].includes('className="dash-die"'),
 );
 
 // --- IMM-H2 Tonal: distinct ink shades per plane, ONLY existing tokens ------
@@ -83,11 +88,11 @@ check(
   !/#[0-9a-fA-F]{3,8}\b/.test(dashCss),
   'band must use tokens only, no arbitrary colors',
 );
-check('Kicker uses ink-50 token', /\.dash-kicker\s*{[^}]*var\(--color-ink-50\)/.test(dashCss));
+check('Wordmark uses ink-50 token', /\.dash-wordmark\s*{[^}]*var\(--color-ink-50\)/.test(dashCss));
 check(
-  'Kicker display voice (Grotesk 700)',
-  /\.dash-kicker\s*{[^}]*font-family:\s*var\(--font-display\)/.test(dashCss) &&
-    /\.dash-kicker\s*{[^}]*font-weight:\s*700/.test(dashCss),
+  'Wordmark display voice (Grotesk 700)',
+  /\.dash-wordmark\s*{[^}]*font-family:\s*var\(--font-display\)/.test(dashCss) &&
+    /\.dash-wordmark\s*{[^}]*font-weight:\s*700/.test(dashCss),
 );
 check(
   'Hairline seams (ink-700 via grid gap)',
@@ -115,6 +120,25 @@ check(
   'only the 3 pre-existing button radii, no shadows anywhere',
 );
 
+// --- IMM-H2 Motion: hero d20 spins via transform-only keyframe, gated -------
+const dashKeyframes = [...dashCss.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?)\n\}/g)];
+const dashAnimated = [];
+for (const [, , body] of dashKeyframes) {
+  const decls = [...body.matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]);
+  for (const d of decls) if (!dashAnimated.includes(d)) dashAnimated.push(d);
+}
+check(
+  'Band keyframes animate ONLY transform/opacity',
+  dashAnimated.length > 0 && dashAnimated.every((p) => p === 'transform' || p === 'opacity'),
+  `animated: ${dashAnimated.join(', ')}`,
+);
+check('dash-spin keyframe present', dashCss.includes('@keyframes dash-spin'));
+check('Hero die spins via .dash-die animation', /\.dash-die\s*{[^}]*animation:\s*dash-spin/.test(dashCss));
+check(
+  'Reduced motion stops the hero die (content stays)',
+  /@media \(prefers-reduced-motion: reduce\)\s*{[\s\S]*?\.dash-die\s*{[^}]*animation:\s*none/.test(dashCss),
+);
+
 // --- presentation-only: fetch/data logic untouched --------------------------
 check('fetchCharacters intact', dash.includes('fetchCharacters') && dash.includes('.from(\'characters\')'));
 check('supabase query untouched', dash.includes(".eq('user_id', user.id)"));
@@ -134,13 +158,8 @@ const SPANISH = [
   'No tienes personajes creados aún.',
   'Nivel',
   'Creador desconocido',
-  'La mesa espera',
 ];
 SPANISH.forEach((s) => check(`Spanish copy: "${s}"`, dash.includes(s)));
-
-// --- reduced-motion / static restraint --------------------------------------
-check('Band is static (no animation/transition/keyframes)', !/animation|transition|@keyframes/.test(dashCss));
-check('No new media queries added by band', !/@media/.test(dashCss));
 
 // --- restraint gates ----------------------------------------------------------
 const walk = (dir) =>

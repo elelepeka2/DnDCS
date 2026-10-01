@@ -151,7 +151,7 @@ check(
 
 // --- regressions: S5/S4/S3/S2 scripts must still pass -------------------------
 const scripts = [
-  ['check-immersive-s5.mjs', 42],
+  ['check-immersive-s5.mjs', 45],
   ['check-immersive-s4.mjs', 39],
   ['check-immersive-s3.mjs', 308],
   ['check-immersive-s2.mjs', 284],

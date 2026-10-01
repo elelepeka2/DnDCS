@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { CreateCharacterModal } from '../components/ui/CreateCharacterModal';
+import { CanvasDie } from '../components/ui/dice/CanvasDie';
 
 export function Dashboard({ user }) {
   const [characters, setCharacters] = useState([]);
@@ -47,13 +48,17 @@ export function Dashboard({ user }) {
       </header>
 
       <main className="max-w-5xl mx-auto">
-        {/* IMM-H2: hero band — three flat tonal planes (tabletop strata),
-            kicker "La mesa espera" over them. Presentation-only, no cards. */}
+        {/* IMM-H2: hero band — three flat tonal planes (tabletop strata), the
+            DND:DOS wordmark over them and a slowly tumbling d20 (CanvasDie,
+            decorative). Presentation-only, no cards, no new tokens. */}
         <section className="dash-band">
           <div className="dash-plane dash-plane-far" aria-hidden="true" />
           <div className="dash-plane dash-plane-mid" aria-hidden="true" />
           <div className="dash-plane dash-plane-near" aria-hidden="true" />
-          <p className="dash-kicker">La mesa espera</p>
+          <div className="dash-die" aria-hidden="true">
+            <CanvasDie sides={20} value={20} settled size={96} />
+          </div>
+          <p className="dash-wordmark">DND:DOS</p>
         </section>
 
         <div className="flex justify-between items-center mb-6">
