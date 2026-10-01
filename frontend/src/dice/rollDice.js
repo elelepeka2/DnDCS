@@ -37,12 +37,25 @@ export const FACE_SEATS = {
   ],
 };
 
+// Value-keyed orientation table builder for the pseudo-3D tier (S3): x
+// alternates ±8°, y sweeps `step`° across `sides` values from `start` — bounded
+// so the flat silhouette never turns edge-on. Inlined as data per design
+// decision 4; the builder only keeps the diff readable (same values a
+// hand-written table would hold, verified byte-exact by the S3 check script).
+const pseudoTilt = (sides, step, start) =>
+  Object.fromEntries(
+    Array.from({ length: sides }, (_, i) => [
+      i + 1,
+      { x: i % 2 ? -8 : 8, y: start + step * i },
+    ]),
+  );
+
 // Value-keyed orientations: the base is the inverse of each face's seating, plus
 // 2-3 extra full turns derived from the value itself, so the tumble is
 // reproducible — equal value ⇒ identical settle (Deterministic NdX Roll).
 // d6 seats face-to-camera; d4 rests base-down and spins value-keyed (every
-// plate reads the rolled value — Base-Face); d8 inverts FACE_SEATS. PseudoDie
-// (S3) adds the d10/d12/d20 tier.
+// plate reads the rolled value — Base-Face); d8 inverts FACE_SEATS; d10/d12/d20
+// settle as pseudo-3D silhouettes with the bounded tilt above (PseudoDie, S3).
 const ORIENTATION = {
   4: {
     1: { x: 0, y: 0 },
@@ -61,6 +74,9 @@ const ORIENTATION = {
   8: Object.fromEntries(
     FACE_SEATS[8].map((seat, i) => [i + 1, { x: -seat.elev, y: seat.psi - 90 }]),
   ),
+  10: pseudoTilt(10, 4, -18),
+  12: pseudoTilt(12, 3, -17),
+  20: pseudoTilt(20, 2, -19),
 };
 
 export function orientationFor(sides, value) {

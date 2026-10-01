@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { backdropVariants, panelVariants } from './motionVariants';
 import { TrueDie } from './dice/TrueDie';
+import { PseudoDie } from './dice/PseudoDie';
 import {
   DIE_TYPES,
   formatChip,
@@ -10,8 +11,11 @@ import {
   rollDice,
 } from '../../dice/rollDice';
 
-// True CSS-3D tier (S2): d4/d6/d8 render as dies; d10/d12/d20 join in S3.
+// Renderer tiers (design decision 4): d4/d6/d8 are true CSS-3D (TrueDie, any
+// count); d10/d12/d20 are pseudo-3D silhouettes (PseudoDie) — count===1 only,
+// beyond one die they stay numeral+chip like the S1 interim.
 const TRUE_TIER = [4, 6, 8];
+const PSEUDO_TIER = [10, 12, 20];
 
 const HISTORY_KEY = 'dndcs.dice.history';
 const MAX_HISTORY = 5;
@@ -58,10 +62,13 @@ export function RollPanel({ isOpen, onClose }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  // True tier renders dice whenever the pending config is d4/d6/d8; values
+  // True tier renders dice for any count; the pseudo tier is a single hero
+  // silhouette (count===1) — beyond that d10/d12/d20 stay numeral+chip. Values
   // settle only when the result matches the pending config, so changing
   // Cantidad or type returns every die to its idle pose (value 1).
-  const showDie = TRUE_TIER.includes(sides);
+  const showTrueDie = TRUE_TIER.includes(sides);
+  const showPseudoDie = PSEUDO_TIER.includes(sides) && count === 1;
+  const showDie = showTrueDie || showPseudoDie;
   const settled = result !== null && result.count === count && result.sides === sides;
   const diceValues = settled ? result.values : Array.from({ length: count }, () => 1);
 
@@ -177,19 +184,30 @@ export function RollPanel({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* True CSS-3D dies: one hero die at count 1, compact row beyond */}
+              {/* Tiered dies: TrueDie hero (count 1) or compact row; PseudoDie hero at count 1 */}
               {showDie && (
                 <div className="mb-4 flex flex-wrap items-center justify-center gap-2" aria-hidden="true">
-                  {diceValues.map((value, i) => (
-                    <TrueDie
-                      key={`${sides}-${i}`}
-                      sides={sides}
-                      value={value}
-                      settled={settled}
-                      size={count === 1 ? 112 : 40}
-                      prefersReduced={prefersReduced}
-                    />
-                  ))}
+                  {diceValues.map((value, i) =>
+                    showPseudoDie ? (
+                      <PseudoDie
+                        key={`${sides}-${i}`}
+                        sides={sides}
+                        value={value}
+                        settled={settled}
+                        size={112}
+                        prefersReduced={prefersReduced}
+                      />
+                    ) : (
+                      <TrueDie
+                        key={`${sides}-${i}`}
+                        sides={sides}
+                        value={value}
+                        settled={settled}
+                        size={count === 1 ? 112 : 40}
+                        prefersReduced={prefersReduced}
+                      />
+                    ),
+                  )}
                 </div>
               )}
 
