@@ -47,6 +47,15 @@ export function Dashboard({ user }) {
       </header>
 
       <main className="max-w-5xl mx-auto">
+        {/* IMM-H2: hero band — three flat tonal planes (tabletop strata),
+            kicker "La mesa espera" over them. Presentation-only, no cards. */}
+        <section className="dash-band">
+          <div className="dash-plane dash-plane-far" aria-hidden="true" />
+          <div className="dash-plane dash-plane-mid" aria-hidden="true" />
+          <div className="dash-plane dash-plane-near" aria-hidden="true" />
+          <p className="dash-kicker">La mesa espera</p>
+        </section>
+
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Tus Personajes</h2>
           {characters.length > 0 && (

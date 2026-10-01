@@ -131,3 +131,41 @@ body {
     padding: 1.5rem 1rem 2.5rem;
   }
 }
+
+/* ── IMM-H2 Dashboard hero band (S5): tonal strata + kicker ─────────────── */
+
+/* Band: three flat tonal planes stacked like tabletop strata receding into
+   the dark — ink-950 far (thin horizon) → ink-900 mid (table) → ink-800 near
+   (light-catching edge). ONLY existing ink tokens; no card surface (NoCards).
+   The 1px grid gaps show the container's ink-700 = hairline seams (app
+   language). Static — no motion to gate for reduced-motion. */
+.dash-band {
+  position: relative;
+  display: grid;
+  grid-template-rows: 2.5rem 4.5rem 5.5rem; /* far / mid / near */
+  gap: 1px;
+  background: var(--color-ink-700);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.dash-plane-far { background-color: var(--color-ink-950); }
+.dash-plane-mid { background-color: var(--color-ink-900); }
+.dash-plane-near { background-color: var(--color-ink-800); }
+
+/* Kicker: the table's invitation, display voice over the tonal planes.
+   Sentence case — never an all-caps eyebrow; Grotesk 700 = max loaded
+   weight. Ink-50 on ink-800 ≈ 15.6:1, so contrast holds on every plane. */
+.dash-kicker {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-ink-50);
+  pointer-events: none;
+}
