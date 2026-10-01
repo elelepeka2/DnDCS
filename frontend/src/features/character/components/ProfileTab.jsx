@@ -278,15 +278,15 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   const activeClassId = character?.class_id;
 
   return (
-    <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-      <div className="flex justify-between items-center border-b border-gray-800/80 pb-4 mb-8">
+    <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8 relative overflow-hidden">
+      <div className="flex justify-between items-center border-b border-ink-700 pb-4 mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-mono tracking-widest text-gray-400 uppercase">
+          <div className="w-3 h-3 rounded-full bg-ink-200 animate-pulse" />
+          <span className="text-xs font-mono tracking-widest text-ink-400 uppercase">
             Gremio de Aventureros • Registro Oficial
           </span>
         </div>
-        <span className="text-xs font-mono text-gray-500 uppercase">
+        <span className="text-xs font-mono text-ink-400 uppercase">
           Licencia Tipo-A
         </span>
       </div>
@@ -295,26 +295,26 @@ export function ProfileTab({ character, onCharacterUpdate }) {
         <div className="md:col-span-4 flex flex-col items-center">
           <label 
             htmlFor="avatar-upload"
-            className="w-full aspect-[4/5] max-w-[220px] bg-gray-950 rounded-2xl border-2 border-indigo-500/30 flex flex-col items-center justify-center overflow-hidden shadow-inner relative group cursor-pointer hover:border-indigo-500 transition-all"
+            className="w-full aspect-[4/5] max-w-[220px] bg-ink-950 rounded-control border border-ink-700 flex flex-col items-center justify-center overflow-hidden relative group cursor-pointer hover:border-ink-400 transition-colors"
           >
             {character?.avatar_url ? (
               <img
                 src={character.avatar_url}
                 alt={character.nombre}
-                className="w-full h-full object-cover group-hover:opacity-75 transition"
+                className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
               />
             ) : (
-              <div className="flex flex-col items-center gap-3 text-gray-600 group-hover:text-indigo-400 transition">
-                <svg className="w-16 h-16 text-indigo-500/40 group-hover:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex flex-col items-center gap-3 text-ink-400 group-hover:text-ink-50 transition-colors">
+                <svg className="w-16 h-16 text-ink-400 group-hover:text-ink-200" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-3zm0 4a3 3 0 110 6 3 3 0 010-6zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
                 </svg>
-                <span className="text-xs font-mono uppercase tracking-wider text-gray-500 group-hover:text-indigo-300">
+                <span className="text-xs font-mono uppercase tracking-wider text-ink-400 group-hover:text-ink-50">
                   Subir Foto
                 </span>
               </div>
             )}
 
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-xs font-bold text-white uppercase tracking-wider">
+            <div className="absolute inset-0 bg-ink-950/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-bold text-ink-50 uppercase tracking-wider">
               {uploading ? 'Subiendo...' : 'Cambiar Foto'}
             </div>
           </label>
@@ -328,21 +328,21 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             className="hidden"
           />
 
-          <div className="mt-4 px-3 py-1 bg-gray-950 border border-gray-800 rounded-lg">
-            <span className="text-[11px] font-mono text-indigo-400 font-bold">
+          <div className="mt-4 px-3 py-1 bg-ink-950 border border-ink-700 rounded-control">
+            <span className="text-xs font-mono text-ink-400 font-bold">
               {uploading ? 'PROCESANDO...' : 'ESTADO: ACTIVO'}
             </span>
           </div>
         </div>
 
         <div className="md:col-span-8 grid grid-cols-2 gap-x-6 gap-y-5 content-start">
-          <div className="col-span-2 border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Nombre Completo</p>
-            <p className="text-xl font-black text-indigo-300 mt-0.5">{character?.nombre || '—'}</p>
+          <div className="col-span-2 border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Nombre Completo</p>
+            <p className="text-xl font-bold text-ink-50 mt-0.5">{character?.nombre || '—'}</p>
           </div>
 
-          <div className="border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Edad</p>
+          <div className="border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Edad</p>
             {isEditingEdad ? (
               <div className="flex items-center gap-2 mt-1">
                 <input
@@ -350,14 +350,14 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                   value={edadInput}
                   onChange={(e) => setEdadInput(e.target.value)}
                   placeholder="Ej. 25"
-                  className="w-24 bg-gray-950 border border-indigo-500/50 rounded-md px-2 py-1 text-sm font-semibold text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-24 bg-ink-800 border border-ink-700 rounded-control px-2 py-1 text-sm font-medium text-ink-50 focus:outline-none focus:border-ink-400"
                 />
                 <button
                   onClick={() => {
                     updateField('edad', edadInput ? parseInt(edadInput) : null);
                     setIsEditingEdad(false);
                   }}
-                  className="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded cursor-pointer transition text-white"
+                  className="px-2 py-1 bg-ink-50 hover:bg-ink-200 text-ink-950 text-xs font-bold rounded-control cursor-pointer transition-colors"
                 >
                   Guardar
                 </button>
@@ -367,10 +367,10 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                 onClick={() => setIsEditingEdad(true)}
                 className="flex items-center gap-2 cursor-pointer group mt-0.5"
               >
-                <p className="text-base font-semibold text-gray-200 group-hover:text-indigo-300 transition">
+                <p className="text-base font-medium text-ink-200 group-hover:text-ink-50 transition-colors">
                   {character?.edad ? `${character.edad} años` : 'Añadir edad...'}
                 </p>
-                <span className="text-xs text-gray-600 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition">
+                <span className="text-xs text-ink-400 group-hover:text-ink-200 opacity-0 group-hover:opacity-100 transition-opacity">
                   ✎
                 </span>
               </div>
@@ -378,17 +378,17 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           </div>
 
           {/* Raza */}
-          <div className="border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Raza / Especie</p>
+          <div className="border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Raza / Especie</p>
             <select
               value={character?.race_id || ''}
               onChange={(e) => updateField('race_id', e.target.value || null)}
               disabled={savingField === 'race_id'}
-              className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
             >
               <option value="">Selecciona raza...</option>
               {razas.map((raza) => (
-                <option key={raza.id} value={raza.id} className="bg-gray-900 text-white">
+                <option key={raza.id} value={raza.id} className="bg-ink-900 text-ink-50">
                   {raza.name}
                 </option>
               ))}
@@ -396,17 +396,17 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           </div>
 
           {/* Clase Principal */}
-          <div className="border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Clase Principal</p>
+          <div className="border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Clase Principal</p>
             <select
               value={character?.class_id || ''}
               onChange={(e) => handleClassChange(e.target.value)}
               disabled={savingField === 'class_id'}
-              className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
             >
               <option value="">Selecciona clase...</option>
               {classesList.map((cls) => (
-                <option key={cls.id} value={cls.id} className="bg-gray-900 text-white">
+                <option key={cls.id} value={cls.id} className="bg-ink-900 text-ink-50">
                   {cls.nombre || cls.name}
                 </option>
               ))}
@@ -414,19 +414,19 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           </div>
 
           {/* Subclase */}
-          <div className="border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Subclase / Eidolon</p>
+          <div className="border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Subclase / Eidolon</p>
             <select
               value={character?.subclass_id || ''}
               onChange={(e) => handleSubclassChange(e.target.value)}
               disabled={savingField === 'subclass_id' || !activeClassId}
-              className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer disabled:opacity-40"
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-40"
             >
               <option value="">
                 {!activeClassId ? 'Elige una clase primero' : 'Selecciona subclase...'}
               </option>
               {subclassesList.map((sub) => (
-                <option key={sub.id} value={sub.id} className="bg-gray-900 text-white">
+                <option key={sub.id} value={sub.id} className="bg-ink-900 text-ink-50">
                   {sub.nombre || sub.name}
                 </option>
               ))}
@@ -434,17 +434,17 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           </div>
 
           {/* Multiclase */}
-          <div className="border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Multiclase</p>
+          <div className="border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Multiclase</p>
             <select
               value={character?.multiclass_id || ''}
               onChange={(e) => handleMulticlassChange(e.target.value)}
               disabled={savingField === 'multiclass_id'}
-              className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
             >
               <option value="">Ninguna / Selecciona...</option>
               {classesList.map((cls) => (
-                <option key={cls.id} value={cls.id} className="bg-gray-900 text-white">
+                <option key={cls.id} value={cls.id} className="bg-ink-900 text-ink-50">
                   {cls.nombre || cls.name}
                 </option>
               ))}
@@ -452,19 +452,19 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           </div>
 
           {/* Subclase Adicional */}
-          <div className="border-b border-gray-800/80 pb-2">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase">Subclase Adicional</p>
+          <div className="border-b border-ink-700 pb-2">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Subclase Adicional</p>
             <select
               value={character?.multiclass_subclass_id || ''}
               onChange={(e) => handleMultiSubclassChange(e.target.value)}
               disabled={savingField === 'multiclass_subclass_id' || !character?.multiclass_id}
-              className="mt-1 w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer disabled:opacity-40"
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-40"
             >
               <option value="">
                 {!character?.multiclass_id ? 'Elige multiclase primero' : 'Selecciona subclase...'}
               </option>
               {multiSubclassesList.map((sub) => (
-                <option key={sub.id} value={sub.id} className="bg-gray-900 text-white">
+                <option key={sub.id} value={sub.id} className="bg-ink-900 text-ink-50">
                   {sub.nombre || sub.name}
                 </option>
               ))}
@@ -472,8 +472,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
           </div>
 
           {/* Idiomas Conocidos */}
-          <div className="col-span-2 pt-2 border-t border-gray-800/80">
-            <p className="text-[10px] font-mono font-bold tracking-widest text-gray-500 uppercase mb-2">
+          <div className="col-span-2 pt-2 border-t border-ink-700">
+            <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase mb-2">
               Idiomas Conocidos
             </p>
 
@@ -481,7 +481,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
               {nativeLanguages.map((idioma) => (
                 <div
                   key={`native-${idioma}`}
-                  className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-sm font-semibold text-gray-300 shadow-inner"
+                  className="bg-ink-800 border border-ink-700 rounded-control px-3 py-1.5 text-sm font-medium text-ink-200"
                 >
                   {idioma}
                 </div>
@@ -492,13 +492,13 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                   <select
                     value={extraLanguages[0] || ''}
                     onChange={(e) => handleSelectExtraLanguage(e.target.value)}
-                    className="w-full bg-gray-950 border border-gray-800 hover:border-indigo-500/50 text-gray-200 font-semibold text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer"
+                    className="w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
                   >
                     <option value="">Selecciona idioma adicional...</option>
                     {languagesList
                       .filter((lang) => lang.nombre !== 'Común')
                       .map((lang) => (
-                        <option key={lang.id} value={lang.nombre} className="bg-gray-900 text-white">
+                        <option key={lang.id} value={lang.nombre} className="bg-ink-900 text-ink-50">
                           {lang.nombre}
                         </option>
                       ))}
