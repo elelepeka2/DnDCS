@@ -489,29 +489,29 @@ export function StatsTab({ character, onCharacterUpdate }) {
   );
 
   return (
-    <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl backdrop-blur-sm relative">
-      <div className="absolute top-4 right-6 text-xs font-mono font-bold text-indigo-400">
+    <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8 relative">
+      <div className="absolute top-4 right-6 text-xs font-mono font-bold text-ink-400">
         {savingStatus}
       </div>
 
       <div className="flex justify-center mb-6">
-        <div className="bg-gray-950 p-1.5 rounded-xl border border-gray-800 inline-flex gap-2 shadow-inner">
+        <div className="bg-ink-950 p-1.5 rounded-control border border-ink-700 inline-flex gap-2">
           <button
             onClick={() => setViewMode('attributes')}
-            className={`px-5 py-2 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
+            className={`px-5 py-2 text-xs font-mono font-bold rounded-control transition-colors cursor-pointer ${
               viewMode === 'attributes'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-ink-50 text-ink-950'
+                : 'text-ink-400 hover:text-ink-50'
             }`}
           >
             Atributos Base
           </button>
           <button
             onClick={() => setViewMode('savingThrows')}
-            className={`px-5 py-2 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
+            className={`px-5 py-2 text-xs font-mono font-bold rounded-control transition-colors cursor-pointer ${
               viewMode === 'savingThrows'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-ink-50 text-ink-950'
+                : 'text-ink-400 hover:text-ink-50'
             }`}
           >
             Tiradas de Salvación
@@ -523,20 +523,20 @@ export function StatsTab({ character, onCharacterUpdate }) {
         <div className="md:col-span-7 flex flex-col items-center justify-center relative">
           <svg width="300" height="300" className="overflow-visible">
             {webHexagons.map((pts, i) => (
-              <polygon key={i} points={pts} fill="none" stroke="#374151" strokeWidth="1" strokeDasharray={i < 3 ? '2,2' : '0'} />
+              <polygon key={i} points={pts} fill="none" stroke="#2A2A2F" strokeWidth="1" strokeDasharray={i < 3 ? '2,2' : '0'} />
             ))}
 
             {angles.map((angle, i) => {
               const { x, y } = getCoordinates(angle, maxRadius);
-              return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#374151" strokeWidth="1" />;
+              return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#2A2A2F" strokeWidth="1" />;
             })}
 
             <polygon
               points={polygonPoints}
-              fill={viewMode === 'savingThrows' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(99, 102, 241, 0.35)'}
-              stroke={viewMode === 'savingThrows' ? '#10b981' : '#6366f1'}
+              fill="rgba(245, 245, 246, 0.12)"
+              stroke="#D8D8DB"
               strokeWidth="3"
-              className="transition-all duration-300"
+              className="transition-[fill,stroke] duration-200"
             />
 
             {spiderStatKeys.map((key, index) => {
@@ -553,8 +553,8 @@ export function StatsTab({ character, onCharacterUpdate }) {
                     y={outerCoord.y}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className={`font-black text-sm font-mono uppercase tracking-wider ${
-                      viewMode === 'savingThrows' && isProficient ? 'fill-emerald-400 font-extrabold' : 'fill-indigo-300'
+                    className={`font-bold text-sm font-mono uppercase tracking-wider ${
+                      viewMode === 'savingThrows' && isProficient ? 'fill-ink-50' : 'fill-ink-200'
                     }`}
                   >
                     {spiderStatLabels[index]}
@@ -564,12 +564,10 @@ export function StatsTab({ character, onCharacterUpdate }) {
                     y={outerCoord.y + 16}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className={`font-extrabold text-xs font-mono ${
+                    className={`font-bold text-xs font-mono ${
                       viewMode === 'savingThrows' && isProficient
-                        ? 'fill-emerald-400 font-black text-sm'
-                        : viewMode === 'savingThrows'
-                        ? 'fill-emerald-600/70'
-                        : 'fill-indigo-400'
+                        ? 'fill-ink-50 text-sm'
+                        : 'fill-ink-400'
                     }`}
                   >
                     {viewMode === 'savingThrows'
@@ -582,21 +580,21 @@ export function StatsTab({ character, onCharacterUpdate }) {
           </svg>
         </div>
 
-        <div className="md:col-span-5 flex flex-col gap-5 bg-gray-950/60 p-6 rounded-2xl border border-gray-800">
-          <div className="flex justify-between gap-4 items-center border-b border-gray-800/80 pb-3">
+        <div className="md:col-span-5 flex flex-col gap-5 bg-ink-950 p-6 border border-ink-700">
+          <div className="flex justify-between gap-4 items-center border-b border-ink-700 pb-3">
             <div>
-              <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase block">Bonif. Competencia</span>
-              <span className="text-xl font-black font-mono text-emerald-300">+{profBonus}</span>
+              <span className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase block">Bonif. Competencia</span>
+              <span className="text-xl font-bold font-mono text-ink-50">+{profBonus}</span>
             </div>
             <div className="text-right">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase block">Nivel Actual</span>
-              <span className="text-xl font-black font-mono text-cyan-300">Nv. {expProgress.level}</span>
+              <span className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase block">Nivel Actual</span>
+              <span className="text-xl font-bold font-mono text-ink-50">Nv. {expProgress.level}</span>
             </div>
           </div>
 
           <div className="flex justify-between gap-4 items-center">
             <div className="flex-1">
-              <label className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase">Iniciativa</label>
+              <label className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Iniciativa</label>
               <input
                 type="number"
                 value={iniciativa}
@@ -605,11 +603,11 @@ export function StatsTab({ character, onCharacterUpdate }) {
                   setIniciativa(val);
                   autoSaveToSupabase({ iniciativa: val });
                 }}
-                className="mt-1 w-full bg-gray-900 border border-gray-800 text-indigo-300 font-bold text-base rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                className="mt-1 w-full bg-ink-800 border border-ink-700 text-ink-50 font-bold text-base rounded-control px-3 py-1.5 focus:outline-none focus:border-ink-400"
               />
             </div>
             <div className="flex-1">
-              <label className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase">CA (Armadura)</label>
+              <label className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">CA (Armadura)</label>
               <input
                 type="number"
                 value={ca}
@@ -618,27 +616,27 @@ export function StatsTab({ character, onCharacterUpdate }) {
                   setCa(val);
                   autoSaveToSupabase({ ca: val });
                 }}
-                className="mt-1 w-full bg-gray-900 border border-gray-800 text-indigo-300 font-bold text-base rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                className="mt-1 w-full bg-ink-800 border border-ink-700 text-ink-50 font-bold text-base rounded-control px-3 py-1.5 focus:outline-none focus:border-ink-400"
               />
             </div>
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase">
+              <label className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">
                 Puntos de Golpe (HP)
               </label>
-              <span className="text-xs font-mono text-emerald-400 font-bold">{hpActual} / {hpMax}</span>
+              <span className="text-xs font-mono text-signal-500 font-bold">{hpActual} / {hpMax}</span>
             </div>
-            <div className="w-full h-3.5 bg-gray-900 border border-gray-800 rounded-full overflow-hidden p-0.5 shadow-inner">
+            <div className="w-full h-3.5 bg-ink-800 border border-ink-700 rounded-pill overflow-hidden p-0.5">
               <div
-                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-300"
+                className="h-full bg-signal-500 rounded-pill transition-all duration-200"
                 style={{ width: `${Math.min(100, Math.max(0, (hpActual / hpMax) * 100))}%` }}
               />
             </div>
             <div className="flex gap-2 mt-2">
               <div className="w-1/2 flex flex-col">
-                <span className="text-[9px] font-mono text-gray-500 text-center uppercase">Actual</span>
+                <span className="text-xs font-mono text-ink-400 text-center uppercase">Actual</span>
                 <input
                   type="number"
                   value={hpActual}
@@ -647,32 +645,32 @@ export function StatsTab({ character, onCharacterUpdate }) {
                     setHpActual(val);
                     autoSaveToSupabase({ hp_actual: val });
                   }}
-                  className="bg-gray-900 border border-gray-800 text-xs font-bold text-white rounded-md px-2 py-1 text-center"
+                  className="bg-ink-800 border border-ink-700 text-xs font-bold text-ink-50 rounded-control px-2 py-1 text-center"
                 />
               </div>
               <div className="w-1/2 flex flex-col">
-                <span className="text-[9px] font-mono text-gray-500 text-center uppercase">Máx (Fijado)</span>
+                <span className="text-xs font-mono text-ink-400 text-center uppercase">Máx (Fijado)</span>
                 <input
                   type="number"
                   value={hpMax}
                   disabled
-                  className="bg-gray-950 border border-gray-800/50 text-xs font-bold text-emerald-400/80 rounded-md px-2 py-1 text-center cursor-not-allowed"
+                  className="bg-ink-900 border border-ink-700 text-xs font-bold text-ink-400 rounded-control px-2 py-1 text-center cursor-not-allowed"
                 />
               </div>
             </div>
 
-            <div className="mt-3 p-2.5 bg-gray-900/80 rounded-xl border border-gray-800 flex items-center justify-between">
+            <div className="mt-3 p-2.5 bg-ink-950 rounded-control border border-ink-700 flex items-center justify-between">
               <div>
-                <span className="block text-[10px] font-mono font-bold text-indigo-400 uppercase tracking-wide">
+                <span className="block text-xs font-mono font-bold text-ink-400 uppercase tracking-wide">
                   Dado Actual (Nv. {expProgress.level})
                 </span>
-                <span className="text-[9px] font-mono text-gray-500">
+                <span className="text-xs font-mono text-ink-400">
                   Tipo: {hitDiceString}
                 </span>
               </div>
 
-              <div className="bg-gray-950 border border-emerald-500/30 rounded-lg px-4 py-1.5 text-center shadow-inner">
-                <span className="text-xl font-mono font-black text-emerald-400">
+              <div className="bg-ink-900 border border-ink-700 rounded-control px-4 py-1.5 text-center">
+                <span className="text-xl font-mono font-bold text-ink-50">
                   {expProgress.level === 1 ? hitDiceSides : (hpRolls[expProgress.level - 2] ?? 1)}
                 </span>
               </div>
@@ -681,17 +679,17 @@ export function StatsTab({ character, onCharacterUpdate }) {
 
           <div className="pt-1">
             <div className="flex justify-between items-center mb-1">
-              <label className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">Experiencia (EXP)</label>
-              <span className="text-[11px] font-mono text-cyan-300 font-bold">
+              <label className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase">Experiencia (EXP)</label>
+              <span className="text-xs font-mono text-ink-200 font-bold">
                 {expProgress.level >= 20 
                   ? 'NIVEL MÁXIMO' 
                   : `Faltan: ${expProgress.expRemaining.toLocaleString()} EXP`}
               </span>
             </div>
 
-            <div className="w-full h-2.5 bg-gray-900 border border-gray-800 rounded-full overflow-hidden p-0.5 shadow-inner">
+            <div className="w-full h-2.5 bg-ink-800 border border-ink-700 rounded-pill overflow-hidden p-0.5">
               <div
-                className="h-full bg-gradient-to-r from-cyan-500 to-sky-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+                className="h-full bg-ink-200 rounded-pill transition-all duration-200 ease-out"
                 style={{ width: `${expProgress.percent}%` }}
               />
             </div>
@@ -703,35 +701,35 @@ export function StatsTab({ character, onCharacterUpdate }) {
                 value={expAmount}
                 onChange={(e) => setExpAmount(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleModifyExp(false)}
-                className="w-1/2 bg-gray-900 border border-cyan-900/60 text-xs font-bold text-cyan-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-cyan-500"
+                className="w-1/2 bg-ink-800 border border-ink-700 text-xs font-bold text-ink-50 rounded-control px-2 py-1.5 focus:outline-none focus:border-ink-400"
               />
               <div className="flex gap-1.5 w-1/2">
                 <button
                   onClick={() => handleModifyExp(false)}
-                  className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-black font-mono font-black text-xs py-1.5 rounded-lg transition-colors cursor-pointer"
+                  className="flex-1 bg-ink-50 hover:bg-ink-200 text-ink-950 font-mono font-bold text-xs py-1.5 rounded-control transition-colors cursor-pointer"
                 >
                   + EXP
                 </button>
                 <button
                   onClick={() => handleModifyExp(true)}
-                  className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-mono font-black text-xs py-1.5 rounded-lg transition-colors cursor-pointer"
+                  className="flex-1 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 font-mono font-bold text-xs py-1.5 rounded-control transition-colors cursor-pointer"
                 >
                   - EXP
                 </button>
               </div>
             </div>
 
-            <div className="mt-2 flex justify-between items-center text-[10px] font-mono text-gray-400">
+            <div className="mt-2 flex justify-between items-center text-xs font-mono text-ink-400">
               <span>Total acumulado:</span>
-              <span className="text-cyan-300 font-bold">{exp.toLocaleString()} EXP</span>
+              <span className="text-ink-50 font-bold">{exp.toLocaleString()} EXP</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tarjetas de Entrada de Atributos Base: Orden Estándar D&D */}
-      <div className="mt-8 pt-6 border-t border-gray-800">
-        <p className="text-xs font-mono font-bold tracking-widest text-gray-400 uppercase mb-4 text-center">
+      <div className="mt-8 pt-6 border-t border-ink-700">
+        <p className="text-xs font-mono font-bold tracking-widest text-ink-400 uppercase mb-4 text-center">
           Puntuación Base de Atributos
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
@@ -740,20 +738,20 @@ export function StatsTab({ character, onCharacterUpdate }) {
             const totalScore = getTotalStat(key);
 
             return (
-              <div key={key} className="bg-gray-950 p-3 rounded-xl border border-gray-800 text-center relative">
-                <label className="block text-[11px] font-mono font-bold text-indigo-300 uppercase mb-1">
+              <div key={key} className="bg-ink-950 p-3 border border-ink-700 text-center relative">
+                <label className="block text-xs font-mono font-bold text-ink-200 uppercase mb-1">
                   {label}
                 </label>
                 <input
                   type="number"
                   value={stats[key]}
                   onChange={(e) => handleStatChange(key, e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-800 text-center font-bold text-lg text-white rounded-lg py-1 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-ink-800 border border-ink-700 text-center font-bold text-lg text-ink-50 rounded-control py-1 focus:outline-none focus:border-ink-400"
                 />
-                <div className="mt-1 flex justify-between items-center text-[10px] font-mono text-gray-400 px-1">
-                  <span>Total: <strong className="text-indigo-300">{totalScore}</strong></span>
+                <div className="mt-1 flex justify-between items-center text-xs font-mono text-ink-400 px-1">
+                  <span>Total: <strong className="text-ink-50">{totalScore}</strong></span>
                   {raceBonus > 0 && (
-                    <span className="text-emerald-400 font-bold">+{raceBonus}</span>
+                    <span className="text-ink-200 font-bold">+{raceBonus}</span>
                   )}
                 </div>
               </div>

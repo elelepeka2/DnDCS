@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { AnimatePresence, m } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
+import { backdropVariants, panelVariants } from './motionVariants';
 
 export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, userId }) {
   const [nombre, setNombre] = useState('');
   const [loading, setLoading] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,13 +53,26 @@ export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, user
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md text-white shadow-2xl">
+    // inert + pointer-events-none make the overlay non-interactive during its exit (spec: Modal enter/exit)
+    <div inert={!isOpen} aria-hidden={!isOpen} className={isOpen ? undefined : 'pointer-events-none'}>
+      <AnimatePresence>
+        {isOpen && (
+          <m.div
+            variants={backdropVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          >
+            <m.div
+              variants={panelVariants}
+              className="bg-ink-900 border border-ink-700 p-6 w-full max-w-md text-ink-50 shadow-2xl"
+            >
         <h2 className="text-xl font-bold mb-4">Nuevo Aventurero</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
+            <label className="block text-xs font-medium text-ink-400 uppercase mb-2">
               Nombre del Personaje
             </label>
             <input
@@ -69,7 +82,7 @@ export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, user
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ej. Grok"
-              className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 text-base"
+              className="w-full bg-ink-800 border border-ink-700 rounded-control p-3 text-ink-50 placeholder:text-ink-400 focus:outline-none focus:border-ink-50 transition-colors text-base"
             />
           </div>
 
@@ -77,20 +90,23 @@ export function CreateCharacterModal({ isOpen, onClose, onCharacterCreated, user
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition cursor-pointer"
+              className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 rounded-control text-sm font-medium transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2 bg-ink-50 hover:bg-ink-200 text-ink-950 rounded-control text-sm font-bold transition-colors disabled:opacity-50 cursor-pointer"
             >
-              {loading ? 'Creando...' : 'Continuar →'}
+              {loading ? 'Creando...' : 'Continuar'}
             </button>
           </div>
         </form>
-      </div>
+            </m.div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,1 +1,342 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
 @import "tailwindcss";
+
+/* Design tokens — B&W dark-first (SDD frontend-redesign, Phase 1). */
+@theme {
+  /* Ink scale (dark-first) */
+  --color-ink-950: #0A0A0B; /* page background */
+  --color-ink-900: #111113; /* cards */
+  --color-ink-800: #1C1C20; /* inputs */
+  --color-ink-700: #2A2A2F; /* hairline borders */
+  --color-ink-400: #8A8A90; /* muted text (5.8:1 on ink-950) */
+  --color-ink-200: #D8D8DB;
+  --color-ink-50: #F5F5F6; /* primary text */
+
+  /* Single signal accent — HP, errors, destructive only */
+  --color-signal-500: #FF4F45; /* 6.1:1 on ink-950 */
+  --color-signal-600: #E03A31; /* pressed state (3.9:1 on ink-800) */
+
+  /* Typography: Space Grotesk variable + system mono numerals */
+  --font-sans: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+
+  /* Type scale ~1.25: 12/14/16/20/24/32 (3xl keeps the ladder ordered) */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.33;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 2.5rem;
+  --text-3xl--line-height: 1.2;
+
+  /* Radius: structure sharp (0), controls 8px, FAB/pill 999px */
+  --radius-control: 8px;
+  --radius-pill: 999px;
+
+  /* 4px spacing base (matches Tailwind default) */
+  --spacing: 0.25rem;
+}
+
+/* Dark-first page shell: body 16/1.5 */
+body {
+  background-color: var(--color-ink-950);
+  color: var(--color-ink-50);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Reduced motion: fades/instant only, content never blocked (design Motion Spec) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── IMM-H1 Login split-hero (S4): outline numeral over z-layers ─────────── */
+
+/* Outline-type helper: -webkit-text-stroke numeral, transparent fill.
+   pad-right compensates Safari's widened stroke advance (research lane 4). */
+.text-outline {
+  -webkit-text-stroke: 1.5px var(--color-ink-50);
+  color: transparent;
+  padding-right: 0.08em;
+}
+
+/* Poster numeral: Space Grotesk poster voice (700 = max loaded weight),
+   tight line-height/tracking per research; bleeds off-canvas, clipped by
+   the hero's overflow-hidden. Ink-50 stroke on the ink-900 band keeps
+   contrast ~15:1 even where the glyph crosses the tonal seam. */
+.login-numeral {
+  position: absolute;
+  left: -0.12em;
+  bottom: -0.18em;
+  z-index: 10;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(9rem, 22vw, 24rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  pointer-events: none;
+}
+
+/* Tonal band (z-0): battle-map hairline grid over ink-900 — ink tokens only. */
+.login-band {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 47px,
+      var(--color-ink-800) 47px 48px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 47px,
+      var(--color-ink-800) 47px 48px
+    ),
+    var(--color-ink-900);
+}
+
+/* Reflow ≤720px: stack to one column, margins reset, contrast held. */
+@media (max-width: 720px) {
+  .login-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .login-poster {
+    min-height: 34vh;
+  }
+
+  .login-numeral {
+    left: 0.5rem;
+    bottom: -0.12em;
+    font-size: clamp(6rem, 30vw, 10rem);
+  }
+
+  .login-panel {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+}
+
+/* ── IMM-H2 Dashboard hero band (S5): tonal strata + DND:DOS wordmark ────── */
+
+/* Band: three flat tonal planes stacked like tabletop strata receding into
+   the dark — ink-950 far (thin horizon) → ink-900 mid (table) → ink-800 near
+   (light-catching edge). ONLY existing ink tokens; no card surface (NoCards).
+   The 1px grid gaps show the container's ink-700 = hairline seams (app
+   language). */
+.dash-band {
+  position: relative;
+  display: grid;
+  grid-template-rows: 2.75rem 5rem 6rem; /* far / mid / near */
+  gap: 1px;
+  background: var(--color-ink-700);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.dash-plane-far { background-color: var(--color-ink-950); }
+.dash-plane-mid { background-color: var(--color-ink-900); }
+.dash-plane-near { background-color: var(--color-ink-800); }
+
+/* Wordmark: display-scale "DND:DOS" over the strata — the table's nameplate,
+   Grotesk 700 (max loaded weight), ink-50 ≈ 15.6:1 on every plane. */
+.dash-wordmark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-ink-50);
+  pointer-events: none;
+}
+
+/* Hero d20: the canvas die (settled 20) slowly tumbling over the strata.
+   Compositor-only: the wrapper spins via a transform keyframe; the canvas
+   itself never animates. Reduced motion stops the spin, wordmark stays. */
+.dash-die {
+  position: absolute;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: dash-spin 24s linear infinite;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+@keyframes dash-spin {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-die {
+    animation: none !important;
+  }
+}
+
+/* ── IMM-A1 Ambient kit (S6): aria-hidden decor, compositor-only loops ──── */
+
+/* Fixed atmosphere: z-0 keeps it UNDER every positioned UI (FAB z-40,
+   modal) and above only static page backgrounds (pages paint opaque
+   ink-950 roots, so a true z:-1 underlayer would be invisible);
+   pointer-events: none means it never intercepts interaction. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-zone {
+  position: absolute;
+  inset: 0;
+}
+
+/* Far zone: the tabletop horizon — d20 outline top-right, sparse motes.
+   VISIBLE (redesign): bigger glyph, opacity up from 0.35, and the whole
+   zone drifts slowly while the d20 spins (see .ambient-zone--far below). */
+.ambient-zone--far .lineart--d20 {
+  position: absolute;
+  top: 7%;
+  right: 6%;
+  width: clamp(4.5rem, 10vw, 9rem);
+  height: auto;
+  opacity: 0.65;
+}
+
+/* Near zone: the table's edge — the adventurer stands bottom-left. */
+.ambient-zone--near .char-sprite {
+  position: absolute;
+  left: 1.5rem;
+  bottom: 0;
+  width: clamp(2.75rem, 6vw, 4.5rem);
+  height: auto;
+  opacity: 0.9;
+}
+
+/* Zone drift = parallax between the two layers: far recedes slower, near
+   moves quicker and counter-phased — the tabletop reads LIVE, not frozen.
+   transform-only; the reduced-motion gate below stops both. */
+.ambient-zone--far {
+  animation: ambient-drift 26s ease-in-out infinite alternate;
+}
+
+.ambient-zone--near {
+  animation: ambient-drift 18s ease-in-out infinite alternate-reverse;
+}
+
+.ambient-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Motes: deterministic inline vars; drift + fade loop. Base opacity keeps
+   them visible (at peak alpha) when reduced motion stops the loop. Brighter
+   ink-400 fill — clearly perceptible against ink-950 (redesign). */
+.particle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 999px;
+  background: var(--color-ink-400);
+  opacity: var(--peak, 0.5);
+  animation: ambient-mote var(--dur) linear var(--delay) infinite;
+}
+
+/* Transient will-change: JS adds `.ambient-animating` one frame after
+   first paint and removes it on unmount / reduced motion — never static
+   (design decision 9). */
+.ambient-animating .particle,
+.ambient-animating .ambient-loop,
+.ambient-animating .ambient-zone {
+  will-change: transform, opacity;
+}
+
+/* Compositor-only loops (IMM-A1 Vibrant): transform/opacity ONLY — no
+   width/height/color/geometry animation anywhere in these keyframes. */
+@keyframes ambient-mote {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: var(--peak);
+  }
+  100% {
+    transform: translate3d(var(--dx), var(--dy), 0);
+    opacity: 0;
+  }
+}
+
+@keyframes ambient-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The d20 line art now turns at a perceivable 22s (was 60s) and breathes
+   opacity on top — visible motion, still transform/opacity only. */
+.ambient-loop {
+  animation: ambient-spin 22s linear infinite, ambient-breathe 8s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-breathe {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(16px, 12px, 0);
+  }
+}
+
+/* Reduced motion: loops stop, decor stays visible — nothing hides
+   (IMM-A1 Reduced). The global reduce block above already zeroes
+   durations; this ambient-scoped gate makes the intent explicit. */
+@media (prefers-reduced-motion: reduce) {
+  .particle,
+  .ambient-loop,
+  .ambient-zone {
+    animation: none !important;
+  }
+}

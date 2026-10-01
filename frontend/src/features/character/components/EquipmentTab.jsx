@@ -95,11 +95,11 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
   };
 
   return (
-    <div className="w-full max-w-4xl bg-gray-900/90 border-2 border-gray-800/90 rounded-3xl p-8 shadow-2xl backdrop-blur-sm">
-      <h2 className="text-xl font-bold text-white mb-6">Equipamiento</h2>
+    <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8">
+      <h2 className="text-xl font-bold text-ink-50 mb-6">Equipamiento</h2>
 
       {loading ? (
-        <p className="text-sm font-mono text-gray-500">Cargando equipamiento...</p>
+        <p className="text-sm font-mono text-ink-400">Cargando equipamiento...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {SLOTS.map((slot) => {
@@ -107,22 +107,22 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
             const busy = savingSlot === slot;
 
             return (
-              <div key={slot} className="bg-gray-950/70 border border-gray-800 rounded-xl p-4">
+              <div key={slot} className="bg-ink-950 border border-ink-700 p-4">
                 {/* La etiqueta es ES; la clave EN solo se usa para persistir */}
-                <p className="text-xs font-mono font-bold text-gray-400 uppercase mb-2">
+                <p className="text-xs font-mono font-bold text-ink-400 uppercase mb-2">
                   {SLOT_LABELS[slot]}
                 </p>
 
                 {row ? (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-semibold text-white truncate">
+                    <span className="text-sm font-medium text-ink-50 truncate">
                       {row.nombre_objeto}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleUnequip(slot)}
                       disabled={busy}
-                      className="shrink-0 px-3 py-2 bg-gray-800 hover:bg-red-900/60 text-gray-300 hover:text-red-300 text-xs font-bold rounded-lg transition cursor-pointer disabled:opacity-50"
+                      className="shrink-0 px-3 py-2 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {busy ? '...' : 'Desequipar'}
                     </button>
@@ -132,7 +132,7 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
                     value=""
                     onChange={(event) => handleEquip(slot, event.target.value)}
                     disabled={busy || inventory.length === 0}
-                    className="w-full bg-gray-900 border border-gray-800 text-white font-semibold text-sm rounded-xl p-3 focus:outline-none focus:border-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">
                       {inventory.length === 0 ? 'Sin objetos para equipar' : 'Equipar un objeto...'}
