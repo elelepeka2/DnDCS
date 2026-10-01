@@ -12,11 +12,44 @@ const toInt = (value, fallback) => {
 
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
+// Build-time face seats shared with TrueDie (S2): outward-normal azimuth ψ°
+// and elevation ε° per face. TrueDie seats its plates from these; ORIENTATION
+// below holds the matching settle pose — one source of truth for both.
+export const FACE_SEATS = {
+  // d4: the three standing seats of the Base-Face rest (base plate seats flat).
+  4: [
+    { psi: 90, elev: 19.4712 },
+    { psi: 210, elev: 19.4712 },
+    { psi: 330, elev: 19.4712 },
+  ],
+  // d8: two 4-face pyramid rings sharing the equatorial square (faces 1-4
+  // upper, 5-8 lower); the settle inverts each seat so that face meets the
+  // camera (rotateX(x) rotateY(y) ⇒ Rx·Ry applied to the body).
+  8: [
+    { psi: 45, elev: 35.2644 },
+    { psi: 135, elev: 35.2644 },
+    { psi: 225, elev: 35.2644 },
+    { psi: 315, elev: 35.2644 },
+    { psi: 45, elev: -35.2644 },
+    { psi: 135, elev: -35.2644 },
+    { psi: 225, elev: -35.2644 },
+    { psi: 315, elev: -35.2644 },
+  ],
+};
+
 // Value-keyed orientations: the base is the inverse of each face's seating, plus
 // 2-3 extra full turns derived from the value itself, so the tumble is
 // reproducible — equal value ⇒ identical settle (Deterministic NdX Roll).
-// Table ships for d6 now; TrueDie (S2) and PseudoDie (S3) add their tiers.
+// d6 seats face-to-camera; d4 rests base-down and spins value-keyed (every
+// plate reads the rolled value — Base-Face); d8 inverts FACE_SEATS. PseudoDie
+// (S3) adds the d10/d12/d20 tier.
 const ORIENTATION = {
+  4: {
+    1: { x: 0, y: 0 },
+    2: { x: 0, y: 90 },
+    3: { x: 0, y: 180 },
+    4: { x: 0, y: 270 },
+  },
   6: {
     1: { x: 0, y: 0 },
     2: { x: 0, y: -90 },
@@ -25,6 +58,9 @@ const ORIENTATION = {
     5: { x: 0, y: 90 },
     6: { x: 0, y: 180 },
   },
+  8: Object.fromEntries(
+    FACE_SEATS[8].map((seat, i) => [i + 1, { x: -seat.elev, y: seat.psi - 90 }]),
+  ),
 };
 
 export function orientationFor(sides, value) {

@@ -1,34 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { backdropVariants, panelVariants } from './motionVariants';
+import { TrueDie } from './dice/TrueDie';
 import {
   DIE_TYPES,
   formatChip,
   formatNotation,
   normalizeRollEntry,
-  orientationFor,
   rollDice,
 } from '../../dice/rollDice';
 
-// CSS transform seating each face on the 112px cube (half = 56px)
-const FACE_TRANSFORMS = {
-  1: 'rotateY(0deg) translateZ(56px)',
-  2: 'rotateY(90deg) translateZ(56px)',
-  3: 'rotateX(90deg) translateZ(56px)',
-  4: 'rotateX(-90deg) translateZ(56px)',
-  5: 'rotateY(-90deg) translateZ(56px)',
-  6: 'rotateY(180deg) translateZ(56px)',
-};
-
-// Pip layouts as 3x3 grid coordinates [row, col]
-const PIPS = {
-  1: [[1, 1]],
-  2: [[0, 0], [2, 2]],
-  3: [[0, 0], [1, 1], [2, 2]],
-  4: [[0, 0], [2, 0], [0, 2], [2, 2]],
-  5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]],
-  6: [[0, 0], [0, 1], [0, 2], [2, 0], [2, 1], [2, 2]],
-};
+// True CSS-3D tier (S2): d4/d6/d8 render as dies; d10/d12/d20 join in S3.
+const TRUE_TIER = [4, 6, 8];
 
 const HISTORY_KEY = 'dndcs.dice.history';
 const MAX_HISTORY = 5;
@@ -43,29 +26,6 @@ function readHistory() {
   } catch {
     return [];
   }
-}
-
-function DieFace({ value }) {
-  const pips = PIPS[value];
-  return (
-    <div
-      className="absolute inset-0 bg-ink-50 border border-ink-950/15 flex items-center justify-center"
-      style={{ transform: FACE_TRANSFORMS[value] }}
-    >
-      <div className="grid grid-cols-3 grid-rows-3 h-3/4 w-3/4">
-        {Array.from({ length: 9 }, (_, cell) => {
-          const row = Math.floor(cell / 3);
-          const col = cell % 3;
-          const hasPip = pips.some(([r, c]) => r === row && c === col);
-          return (
-            <div key={cell} className="flex items-center justify-center">
-              {hasPip && <span className="block h-2.5 w-2.5 rounded-full bg-ink-950" />}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 // FAB → RollPanel: local state only — no store, no supabase, no screen props (design Data Flow)
@@ -98,11 +58,12 @@ export function RollPanel({ isOpen, onClose }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  const showCube = count === 1 && sides === 6;
-  const rotation =
-    result !== null && result.count === 1 && result.sides === 6
-      ? orientationFor(6, result.values[0])
-      : { x: 0, y: 0 };
+  // True tier renders dice whenever the pending config is d4/d6/d8; values
+  // settle only when the result matches the pending config, so changing
+  // Cantidad or type returns every die to its idle pose (value 1).
+  const showDie = TRUE_TIER.includes(sides);
+  const settled = result !== null && result.count === count && result.sides === sides;
+  const diceValues = settled ? result.values : Array.from({ length: count }, () => 1);
 
   const handleRoll = () => {
     const rolled = rollDice(count, sides, modifier);
@@ -216,23 +177,19 @@ export function RollPanel({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* CSS 3D cube: perspective on the parent, preserve-3d on the die */}
-              {showCube && (
-                <div className="mb-4 flex items-center justify-center" style={{ perspective: '800px' }}>
-                  <m.div
-                    className="relative h-28 w-28"
-                    style={{ transformStyle: 'preserve-3d' }}
-                    animate={{ rotateX: rotation.x, rotateY: rotation.y }}
-                    transition={
-                      prefersReduced
-                        ? { duration: 0 }
-                        : { type: 'spring', stiffness: 220, damping: 18 } // THE sanctioned spring (design dice hero)
-                    }
-                  >
-                    {[1, 2, 3, 4, 5, 6].map((face) => (
-                      <DieFace key={face} value={face} />
-                    ))}
-                  </m.div>
+              {/* True CSS-3D dies: one hero die at count 1, compact row beyond */}
+              {showDie && (
+                <div className="mb-4 flex flex-wrap items-center justify-center gap-2" aria-hidden="true">
+                  {diceValues.map((value, i) => (
+                    <TrueDie
+                      key={`${sides}-${i}`}
+                      sides={sides}
+                      value={value}
+                      settled={settled}
+                      size={count === 1 ? 112 : 40}
+                      prefersReduced={prefersReduced}
+                    />
+                  ))}
                 </div>
               )}
 
