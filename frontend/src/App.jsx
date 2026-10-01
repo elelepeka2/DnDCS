@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { CharacterDetailView } from './features/character/CharacterDetailView';
 import { routeVariants } from './components/ui/motionVariants';
+import { FloatingDiceButton } from './components/ui/FloatingDiceButton';
+import { RollPanel } from './components/ui/RollPanel';
 
 // Route-level page entrance: fade + 8px y (design Motion Spec — m.* only, LazyMotion)
 function Page({ children }) {
@@ -61,6 +63,7 @@ function AnimatedRoutes({ user }) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [diceOpen, setDiceOpen] = useState(false);
 
   useEffect(() => {
     // Obtener la sesión actual al cargar la app
@@ -91,6 +94,9 @@ export default function App() {
       <LazyMotion features={domMax} strict>
         <MotionConfig reducedMotion="user">
           <AnimatedRoutes user={user} />
+          {/* Dice: mounted at App level so the FAB persists on every route (spec: Roll from any screen) */}
+          <FloatingDiceButton onClick={() => setDiceOpen(true)} />
+          <RollPanel isOpen={diceOpen} onClose={() => setDiceOpen(false)} />
         </MotionConfig>
       </LazyMotion>
     </BrowserRouter>
