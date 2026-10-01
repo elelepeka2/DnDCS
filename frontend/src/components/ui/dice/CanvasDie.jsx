@@ -93,7 +93,8 @@ export function CanvasDie({ sides, value, settled, size = 112, prefersReduced = 
       const light = [LIGHT[0] / ll, LIGHT[1] / ll, LIGHT[2] / ll];
       const { tones, ink950, ink50 } = inkRamp();
 
-      // Visible faces: normal·+Z > 0, with depth = mean z, painter-sorted far→near.
+      // Visible faces: normal·+Z > 0, with depth = mean z, painter-sorted
+      // FAR → NEAR (far faces first, near faces painted over them).
       const visible = [];
       for (let fi = 0; fi < geom.faces.length; fi += 1) {
         const n = rotateX(rotateY(normals[fi], pose.y), pose.x);
@@ -103,7 +104,7 @@ export function CanvasDie({ sides, value, settled, size = 112, prefersReduced = 
         const intensity = Math.max(0, Math.min(1, n[0] * light[0] + n[1] * light[1] + n[2] * light[2]));
         visible.push({ fi, zAvg, intensity, pts });
       }
-      visible.sort((a, b) => b.zAvg - a.zAvg);
+      visible.sort((a, b) => a.zAvg - b.zAvg);
 
       ctx.lineWidth = 1;
       for (const face of visible) {
