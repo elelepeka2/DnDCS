@@ -9,6 +9,7 @@ import { CharacterDetailView } from './features/character/CharacterDetailView';
 import { routeVariants } from './components/ui/motionVariants';
 import { FloatingDiceButton } from './components/ui/FloatingDiceButton';
 import { RollPanel } from './components/ui/RollPanel';
+import { AmbientLayer } from './components/decorative/AmbientLayer';
 
 // Route-level page entrance: fade + 8px y (design Motion Spec — m.* only, LazyMotion)
 function Page({ children }) {
@@ -94,6 +95,8 @@ export default function App() {
       <LazyMotion features={domMax} strict>
         <MotionConfig reducedMotion="user">
           <AnimatedRoutes user={user} />
+          {/* Ambient decor: single global mount, aria-hidden, fixed behind content on every route (IMM-A1) */}
+          <AmbientLayer />
           {/* Dice: mounted at App level so the FAB persists on every route (spec: Roll from any screen) */}
           <FloatingDiceButton onClick={() => setDiceOpen(true)} />
           <RollPanel isOpen={diceOpen} onClose={() => setDiceOpen(false)} />

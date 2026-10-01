@@ -18,6 +18,13 @@ const check = (name, cond, detail = '') => {
 const dash = readFileSync(join(root, 'src/pages/Dashboard.jsx'), 'utf8');
 const css = readFileSync(join(root, 'src/index.css'), 'utf8');
 
+// S5's CSS slice is bounded to its own section: later slices append after
+// the IMM-H2 block, so "to EOF" would leak their keyframes/@media/border
+// rules into the band-only absence checks below (S6 tail-slice regression).
+const h2Start = css.indexOf('/* ── IMM-H2 Dashboard hero band');
+const nextSection = css.indexOf('/* ── IMM-A1 Ambient kit');
+const dashCss = css.slice(h2Start, nextSection === -1 ? undefined : nextSection);
+
 // --- IMM-H2 Band: band above "Tus Personajes" with kicker ------------------
 const bandStart = dash.indexOf('<section className="dash-band"');
 const tusIdx = dash.indexOf('Tus Personajes');
@@ -57,7 +64,6 @@ check(
 );
 
 // --- IMM-H2 Tonal: distinct ink shades per plane, ONLY existing tokens ------
-const dashCss = css.slice(css.indexOf('/* ── IMM-H2 Dashboard hero band'));
 const dashTokens = [...dashCss.matchAll(/var\(--color-([\w-]+)\)/g)].map((m) => m[1]);
 const ALLOWED = new Set(['ink-950', 'ink-900', 'ink-800', 'ink-700', 'ink-50']);
 check(
