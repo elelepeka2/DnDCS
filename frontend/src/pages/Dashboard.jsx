@@ -4,7 +4,7 @@ import { supabase } from '../services/supabaseClient';
 import { CreateCharacterModal } from '../components/ui/CreateCharacterModal';
 import { CanvasDie } from '../components/ui/dice/CanvasDie';
 
-export function Dashboard({ user }) {
+export function Dashboard({ user, role }) {
   const [characters, setCharacters] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,12 +41,31 @@ export function Dashboard({ user }) {
             {user?.user_metadata?.username ?? user?.email}
           </p>
         </div>
-        <button 
-          onClick={() => supabase.auth.signOut()}
-          className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
-        >
-          Salir
-        </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {/* S4 conecta este botón con EditProfileModal (por ahora, solo UI). */}
+          <button
+            type="button"
+            className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+          >
+            Mi perfil
+          </button>
+          {role === 'admin' && (
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+            >
+              Administración
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => supabase.auth.signOut()}
+            className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+          >
+            Salir
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto">
