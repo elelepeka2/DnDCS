@@ -1,7 +1,7 @@
 // =============================================================================
 // admin-set-password — forces a new password on the target account through
 // the admin API. NO email flow of any kind (domain is null-MX, SMTP off —
-// spec: force password without email; resetPasswordForEmail is forbidden).
+// spec: force password without email; reset-by-mail flows are forbidden).
 //
 // Body: { target_user_id: uuid, password: string >= 8 chars }
 // 200 -> { ok: true, action: 'set-password', target_user_id }
