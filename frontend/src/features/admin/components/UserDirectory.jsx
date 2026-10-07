@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { m } from 'framer-motion';
 import { supabase } from '../../../services/supabaseClient';
+import { banUser, deleteUser, setPassword } from '../../../services/adminFunctions';
 import { listStagger, listItem } from '../../../components/ui/motionVariants';
 import { EditProfileModal } from '../../profile/EditProfileModal';
+import { ConfirmActionDialog } from './ConfirmActionDialog';
 
 const PAGE_SIZE = 25;
 
@@ -34,6 +36,8 @@ export function UserDirectory({ currentUserId }) {
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
+  // Acción de cuenta pendiente de confirmación: { type, row } | null.
+  const [confirmAction, setConfirmAction] = useState(null);
   const requestRef = useRef(0);
   // Expuesto por fuera del effect para el refetch posterior a una escritura
   // (cambio de rol / guardado de perfil) sin disparar el effect de nuevo.
@@ -100,6 +104,31 @@ export function UserDirectory({ currentUserId }) {
     // Refetch (sin optimistic update): se relee el estado real de la DB.
     await refresh();
     setSavingId(null);
+  };
+
+  // Acciones destructivas (S5): ban / delete / forzar contraseña vía las
+  // Edge Functions admin — el wrapper devuelve { ok, status, code, message }
+  // y el diálogo muestra el mensaje cuando ok es false (el gate de rol del
+  // frontend es UX: el servidor re-verifica el rol en cada invocación).
+  const runAccountAction = async (password) => {
+    if (!confirmAction) return { ok: false, message: 'No hay ninguna acción seleccionada.' };
+    const { type, row } = confirmAction;
+
+    let result;
+    if (type === 'ban') result = await banUser(row.user_id);
+    else if (type === 'delete') result = await deleteUser(row.user_id);
+    else result = await setPassword(row.user_id, password);
+
+    if (!result.ok) return result;
+
+    // Borrado: si era la última fila de una página intermedia, se retrocede
+    // una página (el effect refetchea); si no, se refetchea la actual.
+    if (type === 'delete' && rows.length === 1 && page > 0) {
+      setPage(page - 1);
+      return result;
+    }
+    await refresh();
+    return result;
   };
 
   const pagination = totalPages > 1 && (
@@ -209,9 +238,39 @@ export function UserDirectory({ currentUserId }) {
                     </button>
                   )}
 
-                  {/* S5 agrega acá las acciones de cuenta (ban / borrar /
-                      forzar contraseña) vía ConfirmActionDialog — nada
-                      destructivo se renderiza en S4. */}
+                  {/* Acciones de cuenta: la fila propia no ofrece ninguna
+                      (self-ban/self-delete se bloquean además en el servidor
+                      con 400 SELF_ACTION — spec: "admin may name and remove
+                      other admins", sólo la fila del llamador se exime). */}
+                  {!isOwn && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAction({ type: 'ban', row })}
+                        disabled={saving}
+                        className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Suspender
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAction({ type: 'set-password', row })}
+                        disabled={saving}
+                        title={`Forzar contraseña de ${name}`}
+                        className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Contraseña
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAction({ type: 'delete', row })}
+                        disabled={saving}
+                        className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  )}
                 </div>
               </m.li>
             );
@@ -227,6 +286,14 @@ export function UserDirectory({ currentUserId }) {
         targetUserId={currentUserId}
         isOwn
         onSaved={refresh}
+      />
+
+      <ConfirmActionDialog
+        isOpen={confirmAction !== null}
+        action={confirmAction?.type}
+        targetName={confirmAction ? displayName(confirmAction.row) : ''}
+        onConfirm={runAccountAction}
+        onClose={() => setConfirmAction(null)}
       />
     </section>
   );
