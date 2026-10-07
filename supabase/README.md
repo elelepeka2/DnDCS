@@ -40,6 +40,65 @@ supabase db reset     # recrea localmente: migraciones + seed
 Alternativa sin password: pegar cada archivo de `migrations/` en orden en el
 SQL editor del dashboard de Supabase, y luego `seed.sql`.
 
+## Runbook: roles admin y cuentas (admin-profiles)
+
+La migración `20261005000001_feat_admin_profiles.sql` crea `public.profiles`
+(role `player` | `admin`), el helper `private.is_admin()`, las policies RLS y
+un UPDATE de bootstrap que promueve a **un UUID fijo** a admin. Ese UPDATE es
+idempotente: si el UUID no existe en el entorno (staging, fork, otro proyecto)
+no falla, simplemente actualiza 0 filas — y la promoción se hace a mano con el
+SQL de abajo.
+
+### 1. Promover un admin (entornos con UUID desconocido)
+
+Pegar en el SQL editor del dashboard (o en `supabase db push` + cliente psql):
+
+```sql
+-- (opcional) localizar el user_id del usuario a promover
+select id, email, created_at from auth.users order by created_at desc;
+
+-- promover (idempotente: re-ejecutar no cambia nada ni falla)
+update public.profiles set role = 'admin'
+ where user_id = '<USER_ID_UUID>'
+   and role is distinct from 'admin';
+```
+
+Si el usuario aún no tiene fila en `public.profiles` (nunca inició sesión
+desde que existe la tabla), crearla primero:
+
+```sql
+insert into public.profiles (user_id, username)
+select id, coalesce(nullif(raw_user_meta_data ->> 'username', ''),
+                    split_part(email, '@', 1))
+from auth.users where id = '<USER_ID_UUID>'
+on conflict (user_id) do nothing;
+```
+
+### 2. Recuperación del último admin
+
+No hay policy DELETE ni auto-asignación de roles desde el cliente: un admin
+que se baja a `player` solo puede ser rescatado desde el servidor. Desde el
+SQL editor con el rol `postgres`/`service_role`:
+
+```sql
+update public.profiles set role = 'admin'
+ where user_id = '<USER_ID_UUID>'
+   and role is distinct from 'admin';
+```
+
+Regla operativa: mantener siempre **al menos un segundo admin** antes de
+auto-bajar a cualquiera, o dejar este runbook a mano.
+
+### 3. Desbanear un usuario (dashboard)
+
+El baneo se hace con la Edge Function `admin-ban-user`; **no existe función
+de unban** (fuera de alcance). Para reversarlo:
+
+1. Supabase Dashboard → **Authentication → Users**.
+2. Seleccionar el usuario baneado.
+3. Acción **UNBAN** (o quitar el flag de ban) y guardar.
+4. El usuario ya puede iniciar sesión de nuevo con su contraseña actual.
+
 ## Qué reproduce el baseline
 
 - **Schema completo** de las 16 tablas (columnas, defaults, PK, FK) tal como
