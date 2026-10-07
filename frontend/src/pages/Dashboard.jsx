@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { CreateCharacterModal } from '../components/ui/CreateCharacterModal';
+import { EditProfileModal } from '../features/profile/EditProfileModal';
 import { CanvasDie } from '../components/ui/dice/CanvasDie';
 
 export function Dashboard({ user, role }) {
   const [characters, setCharacters] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -42,9 +44,9 @@ export function Dashboard({ user, role }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {/* S4 conecta este botón con EditProfileModal (por ahora, solo UI). */}
           <button
             type="button"
+            onClick={() => setIsProfileOpen(true)}
             className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
           >
             Mi perfil
@@ -156,6 +158,15 @@ export function Dashboard({ user, role }) {
         onCharacterCreated={(newChar) => {
           navigate(`/character/${newChar.id}`);
         }}
+      />
+
+      {/* Perfil propio (S4): username solo si isOwn — el rename también
+          sincroniza user_metadata vía auth.updateUser (diseño D4). */}
+      <EditProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        targetUserId={user?.id}
+        isOwn
       />
     </div>
   );

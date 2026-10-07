@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
+import { UserDirectory } from './components/UserDirectory';
 
 // Shell de la ruta /admin (slice S3).
 // Defensa en profundidad: además del gate de App.jsx, esta página vuelve a
@@ -11,6 +12,9 @@ export function AdminPage() {
   const navigate = useNavigate();
   // 'checking' | 'allowed' | 'denied'
   const [status, setStatus] = useState('checking');
+  // Id de la sesión actual: UserDirectory lo recibe por prop (sin Context)
+  // para deshabilitar el control de rol de la fila propia.
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +32,7 @@ export function AdminPage() {
         : { data: null, error: null };
 
       if (cancelled) return;
+      setCurrentUserId(userId ?? null);
 
       // Fail-closed: sin sesión, sin fila o con error => no admin.
       if (!userId || error || data?.role !== 'admin') {
@@ -74,12 +79,7 @@ export function AdminPage() {
       </header>
 
       <main className="max-w-5xl mx-auto">
-        {/* S4 monta <UserDirectory /> acá (slice S3: solo placeholder). */}
-        <div className="bg-ink-900 border border-ink-700 p-8 text-center">
-          <p className="text-ink-400 text-sm">
-            El directorio de usuarios estará disponible próximamente.
-          </p>
-        </div>
+        {currentUserId && <UserDirectory currentUserId={currentUserId} />}
       </main>
     </div>
   );
