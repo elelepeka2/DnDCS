@@ -37,7 +37,9 @@ export function Dashboard({ user }) {
       <header className="max-w-5xl mx-auto flex justify-between items-center mb-8 border-b border-ink-700 pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Panel de Aventureros</h1>
-          <p className="text-sm text-ink-400 mt-1">{user?.email}</p>
+          <p className="text-sm text-ink-400 mt-1">
+            {user?.user_metadata?.username ?? user?.email}
+          </p>
         </div>
         <button 
           onClick={() => supabase.auth.signOut()}
@@ -119,7 +121,7 @@ export function Dashboard({ user }) {
                     Nivel {char.nivel || 1}
                   </p>
                   <p className="text-xs text-ink-400 font-medium">
-                    {user?.email || 'Creador desconocido'}
+                    {(user?.user_metadata?.username ?? user?.email) || 'Creador desconocido'}
                   </p>
                 </div>
               </div>
