@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { CreateCharacterModal } from '../components/ui/CreateCharacterModal';
+import { EditProfileModal } from '../features/profile/EditProfileModal';
 import { CanvasDie } from '../components/ui/dice/CanvasDie';
 
-export function Dashboard({ user }) {
+export function Dashboard({ user, role }) {
   const [characters, setCharacters] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -37,14 +39,35 @@ export function Dashboard({ user }) {
       <header className="max-w-5xl mx-auto flex justify-between items-center mb-8 border-b border-ink-700 pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Panel de Aventureros</h1>
-          <p className="text-sm text-ink-400 mt-1">{user?.email}</p>
+          <p className="text-sm text-ink-400 mt-1">
+            {user?.user_metadata?.username ?? user?.email}
+          </p>
         </div>
-        <button 
-          onClick={() => supabase.auth.signOut()}
-          className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
-        >
-          Salir
-        </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen(true)}
+            className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+          >
+            Mi perfil
+          </button>
+          {role === 'admin' && (
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+            >
+              Administración
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => supabase.auth.signOut()}
+            className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+          >
+            Salir
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto">
@@ -119,7 +142,7 @@ export function Dashboard({ user }) {
                     Nivel {char.nivel || 1}
                   </p>
                   <p className="text-xs text-ink-400 font-medium">
-                    {user?.email || 'Creador desconocido'}
+                    {(user?.user_metadata?.username ?? user?.email) || 'Creador desconocido'}
                   </p>
                 </div>
               </div>
@@ -135,6 +158,15 @@ export function Dashboard({ user }) {
         onCharacterCreated={(newChar) => {
           navigate(`/character/${newChar.id}`);
         }}
+      />
+
+      {/* Perfil propio (S4): username solo si isOwn — el rename también
+          sincroniza user_metadata vía auth.updateUser (diseño D4). */}
+      <EditProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        targetUserId={user?.id}
+        isOwn
       />
     </div>
   );
