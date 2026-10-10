@@ -85,6 +85,23 @@ function AnimatedRoutes({ user, role, roleLoading }) {
           }
         />
 
+        {/* Admin character detail: same gate as /admin, rendered read-only
+            with a back link to the admin panel. */}
+        <Route
+          path="/admin/characters/:id"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : roleLoading ? (
+              <Page><SessionLoader /></Page>
+            ) : role === 'admin' ? (
+              <Page><CharacterDetailView readOnly backTo="/admin" /></Page>
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          }
+        />
+
         {/* Redirección por defecto */}
         <Route
           path="*"

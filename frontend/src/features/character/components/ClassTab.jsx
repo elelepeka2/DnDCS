@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../services/supabaseClient';
 
-export function ClassTab({ character, onCharacterUpdate }) {
+export function ClassTab({ character, onCharacterUpdate, readOnly = false }) {
   const [classesList, setClassesList] = useState([]);
   const [subclassesList, setSubclassesList] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(character?.class_id || '');
@@ -34,6 +34,7 @@ export function ClassTab({ character, onCharacterUpdate }) {
   };
 
   const handleSaveClass = async (newClassId, newSubclassId) => {
+    if (readOnly) return;
     setSaving(true);
     const { error } = await supabase
       .from('characters')
@@ -71,8 +72,8 @@ export function ClassTab({ character, onCharacterUpdate }) {
               setSelectedSubclassId('');
               handleSaveClass(newId, null);
             }}
-            disabled={saving}
-            className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer"
+            disabled={saving || readOnly}
+            className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">Selecciona una clase...</option>
             {classesList.map((cls) => (
@@ -95,7 +96,7 @@ export function ClassTab({ character, onCharacterUpdate }) {
               setSelectedSubclassId(newSubId);
               handleSaveClass(selectedClassId, newSubId);
             }}
-            disabled={saving || !selectedClassId || subclassesList.length === 0}
+            disabled={saving || readOnly || !selectedClassId || subclassesList.length === 0}
             className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer disabled:opacity-50"
           >
             <option value="">

@@ -31,7 +31,7 @@ const BIOGRAPHY_FIELDS = [
   },
 ];
 
-export function BiographyTab({ character, onCharacterUpdate }) {
+export function BiographyTab({ character, onCharacterUpdate, readOnly = false }) {
   const [values, setValues] = useState(() => ({
     historia: character?.historia || '',
     personalidad: character?.personalidad || '',
@@ -50,7 +50,10 @@ export function BiographyTab({ character, onCharacterUpdate }) {
     latestRef.current = { character, onCharacterUpdate };
   });
 
+  // Fail-closed guard at the single write choke point: covers both the 800ms
+  // onChange debounce and the unmount flush (which also calls persist).
   const persist = useCallback(async (field, value) => {
+    if (readOnly) return;
     const { character: current, onCharacterUpdate: sync } = latestRef.current;
     if (!current?.id) return;
 
@@ -66,7 +69,7 @@ export function BiographyTab({ character, onCharacterUpdate }) {
       sync(field, value);
     }
     setSavingField(null);
-  }, []);
+  }, [readOnly]);
 
   const handleChange = (field, value) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -101,7 +104,9 @@ export function BiographyTab({ character, onCharacterUpdate }) {
     <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8">
       <div className="flex items-baseline justify-between gap-4 mb-6">
         <h2 className="text-xl font-bold text-ink-50">Biografía</h2>
-        <p className="text-xs font-mono text-ink-400">Se guarda solo al dejar de escribir</p>
+        {!readOnly && (
+          <p className="text-xs font-mono text-ink-400">Se guarda solo al dejar de escribir</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-6">
@@ -114,7 +119,7 @@ export function BiographyTab({ character, onCharacterUpdate }) {
               >
                 {label}
               </label>
-              {savingField === key && (
+              {!readOnly && savingField === key && (
                 <span className="text-xs font-mono text-ink-400">Guardando...</span>
               )}
             </div>
@@ -124,6 +129,7 @@ export function BiographyTab({ character, onCharacterUpdate }) {
               onChange={(event) => handleChange(key, event.target.value)}
               placeholder={placeholder}
               rows={4}
+              readOnly={readOnly}
               className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm leading-relaxed rounded-control p-3 focus:outline-none focus:border-ink-400 resize-y placeholder:text-ink-400"
             />
           </div>
