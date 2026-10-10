@@ -126,7 +126,19 @@ export function AdminPage() {
             onClearOwnerFilter={() => setOwnerFilter(null)}
           />
         ) : (
-          currentUserId && <UserDirectory currentUserId={currentUserId} />
+          currentUserId && (
+            // S4-T1: «Personajes» de una fila abre el directorio de
+            // personajes ya acotado a ese usuario. Reutiliza el mismo switch
+            // de vista y el mismo ownerFilter del header — no se añade
+            // ningún gate nuevo; la compuerta sigue siendo recheckRole.
+            <UserDirectory
+              currentUserId={currentUserId}
+              onViewCharacters={(row) => {
+                setOwnerFilter(row.user_id);
+                setView('characters');
+              }}
+            />
+          )
         )}
       </main>
     </div>
