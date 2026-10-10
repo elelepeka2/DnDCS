@@ -38,8 +38,10 @@ src/
 ├── index.css                # tokens de diseño @theme (fuente única de verdad visual)
 ├── pages/                   # Login, Register, Dashboard
 ├── components/ui/           # Modal, FloatingDiceButton, RollPanel (dados)
-└── features/character/      # CharacterDetailView (shell de tabs) + 6 tabs
-    └── components/          # Class, Inventory, Equipment, Biography, Profile, Stats
+├── features/character/      # CharacterDetailView (shell de tabs) + 6 tabs
+│   └── components/          # Class, Inventory, Equipment, Biography, Profile, Stats
+└── features/admin/          # AdminPage (gate fail-closed recheckRole) + directorios de solo lectura
+    └── components/          # CharacterDirectory, UserDirectory, ConfirmActionDialog
 ```
 
 | Regla | Por qué |
@@ -92,6 +94,7 @@ src/
 
 - Rama de trabajo `experiment/frontend-redesign` conservada (no eliminada) con el historial completo.
 - Entregado en `develop` y `main` (2026-10-01) mediante merges apilados sobre `develop`.
+- **Admin** (`admin-profiles` + `admin-characters`) entregado en `develop` (2026-10-10): PRs #6–#10, todos merge commit. `admin-characters` agrega el área `/admin` con `Usuarios`/`Personajes` y el detalle de personaje en **solo lectura** (fail-closed) para admins.
 - Ciclo SDD: explore → research → propose → spec → design → tasks → apply (6 lotes) → verify. Artefactos en Engram (`sdd/frontend-redesign/*`); veredicto: **PASS con advertencias** (0 críticos, 0 deriva lógica en 267 líneas auditadas).
 
 ## Pendiente

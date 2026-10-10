@@ -15,6 +15,8 @@ código (migraciones) en lugar de a mano en el dashboard.
 | Fecha | Estado |
 |---|---|
 | 2026-09-17 | Baseline creado: schema + RLS/grants + seed. Storage pendiente de confirmación. |
+| 2026-10-05 | `admin-profiles`: `public.profiles` + `private.is_admin()` + Edge Functions (ban/delete/set-password). |
+| 2026-10-09 | `admin-characters`: 4 policies SELECT-only admin (solo lectura) sobre `characters` + hijos. |
 
 ## Estructura
 
@@ -98,6 +100,22 @@ de unban** (fuera de alcance). Para reversarlo:
 2. Seleccionar el usuario baneado.
 3. Acción **UNBAN** (o quitar el flag de ban) y guardar.
 4. El usuario ya puede iniciar sesión de nuevo con su contraseña actual.
+
+## Visibilidad admin de solo lectura (admin-characters)
+
+La migración `20261009000001_feat_admin_characters_readonly.sql` agrega 4
+policies **SELECT-only** para el rol admin (vía `private.is_admin()`) sobre
+`characters`, `character_languages`, `character_equipment` y
+`character_inventory`. Los admins pueden **leer** cualquier personaje, pero
+no insertar/actualizar/borrar: no existen policies admin de escritura, así
+que las escrituras siguen limitadas al dueño (`auth.uid() = user_id`).
+
+- **Idempotente**: cada `create policy` va precedido de su `drop policy if exists`.
+- **Aplicada al proyecto remoto** (`supabase db push`) y verificada contra hosted
+  con role-swap RLS: admin lee filas ajenas; no-admin/anon leen 0; el dueño
+  queda intacto; INSERT admin sobre un `user_id` ajeno → `42501`.
+- El frontend lo implementa en el área `/admin` (modo `readOnly` fail-closed en
+  `CharacterDetailView` + directorios paginados `CharacterDirectory`/`UserDirectory`).
 
 ## Qué reproduce el baseline
 

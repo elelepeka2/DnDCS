@@ -35,6 +35,8 @@ pages/                      # Login, Register, Dashboard (+ CreateCharacterModal
 features/character/
   CharacterDetailView.jsx   # shell del personaje + barra de 6 tabs (pill con layoutId)
   components/               # ClassTab, InventoryTab, EquipmentTab, BiographyTab, ProfileTab, StatsTab
+features/admin/              # AdminPage (gate fail-closed recheckRole) + UserDirectory + CharacterDirectory (solo lectura)
+  components/               # CharacterDirectory, UserDirectory, ConfirmActionDialog
 components/ui/              # Modal, FloatingDiceButton, RollPanel (renderizador de dados en canvas 2D)
 components/ui/dice/         # CanvasDie + diceGeometry (6 poliedros, proyección 3D real)
 components/decorative/      # AmbientLayer, Particles, LineArt, CharacterSprite (decoración con aria-hidden)
@@ -64,6 +66,7 @@ Patrón de datos: cada componente llama directamente al cliente `supabase` compa
 ## Git / estado de entrega
 
 - **Entregado en `develop` y `main`** (push autorizado por el propietario, 2026-10-01). La rama de trabajo activa `experiment/frontend-redesign` se **conserva** (no eliminada) con el historial completo de immersive-ui.
+- **Admin entregado en `develop`** (2026-10-10): `admin-profiles` (PR #6) + `admin-characters` (PRs #7–#10), todos con merge commit y ramas limpiadas. Los cambios de `admin-characters` aplican la migración `20261009000001_feat_admin_characters_readonly.sql` al proyecto Supabase remoto.
 - Plan de entrega (decidido): merges apilados (stacked-to-main) sobre `develop` — 7 lotes (motor NdX → dados true-3D → dados pseudo-3D → hero de login → hero del dashboard → kit ambiental → rediseño de dados en canvas), cada uno ≤400 líneas + scripts de chequeo commiteados.
 - El historial de merges vive en `develop` (PRs #2–#5 de character-tabs + immersive-ui).
 
@@ -74,6 +77,8 @@ Patrón de datos: cada componente llama directamente al cliente `supabase` compa
 | `character-tabs` | archivado | tabs de inventario/equipo/biografía + migración RLS, entregado como 4 PRs apilados |
 | `frontend-redesign` | archivado (obs #49) | rediseño B&W + motion + dados CSS-3D; verify: PASS con advertencias, 0 críticos |
 | `immersive-ui` | archivado (obs #77) | motor NdX, dados true/pseudo, héroes, kit ambiental; verify PASS 23/23; rediseño post-archivado: dados canvas 2D + hero DND:DOS + ambiental visible |
+| `admin-profiles` | archivado | `public.profiles` (role player/admin) + `private.is_admin()` + Edge Functions ban/delete/set-password + RLS; PR #6 mergeado (`2c0e8f1`) |
+| `admin-characters` | archivado | visibilidad admin de **solo lectura** de personajes: 4 policies RLS SELECT-only + detalle read-only fail-closed (17 guards) + directorio paginado + conteos por usuario; PRs #7–#10, verify PASS 17/17, walkthroughs de runtime PASS (Playwright) |
 
 ## PENDIENTES
 
