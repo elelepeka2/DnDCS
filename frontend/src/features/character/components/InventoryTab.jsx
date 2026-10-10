@@ -6,7 +6,7 @@ import { listStagger, listItem } from '../../../components/ui/motionVariants';
 // Orden alfabetico por nombre, tolerante a acentos (coincide con .order('nombre'))
 const porNombre = (a, b) => a.nombre.localeCompare(b.nombre, 'es');
 
-export function InventoryTab({ character, _onCharacterUpdate }) {
+export function InventoryTab({ character, _onCharacterUpdate, readOnly = false }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newItemName, setNewItemName] = useState('');
@@ -41,6 +41,7 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
   }, [character?.id]);
 
   const handleAdd = async (event) => {
+    if (readOnly) return;
     event.preventDefault();
     const nombre = newItemName.trim();
     if (!nombre || adding) return;
@@ -71,6 +72,7 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
   };
 
   const handleRename = async (item) => {
+    if (readOnly) return;
     const nombre = editName.trim();
     cancelEditing();
     if (!nombre || nombre === item.nombre) return;
@@ -96,6 +98,7 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
   };
 
   const handleQuantityBlur = async (item) => {
+    if (readOnly) return;
     const parsed = parseInt(item.cantidad, 10);
     const cantidad = Number.isNaN(parsed) ? 1 : Math.max(1, parsed);
     const previous = item.cantidad;
@@ -116,6 +119,7 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
   };
 
   const handleDelete = async (item) => {
+    if (readOnly) return;
     setSavingField(`borrar-${item.id}`);
     const { error } = await supabase.from('character_inventory').delete().eq('id', item.id);
 
@@ -138,12 +142,12 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
           value={newItemName}
           onChange={(event) => setNewItemName(event.target.value)}
           placeholder="Nombre del objeto..."
-          disabled={adding}
+          disabled={adding || readOnly}
           className="flex-1 min-w-0 bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 placeholder:text-ink-400 disabled:opacity-50"
         />
         <button
           type="submit"
-          disabled={adding || !newItemName.trim()}
+          disabled={adding || readOnly || !newItemName.trim()}
           className="px-5 py-3 bg-ink-50 hover:bg-ink-200 text-ink-950 text-sm font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {adding ? 'Agregando...' : '+ Agregar'}
@@ -173,14 +177,16 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
                       if (event.key === 'Enter') handleRename(item);
                       if (event.key === 'Escape') cancelEditing();
                     }}
+                    disabled={readOnly}
                     autoFocus
-                    className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-2 focus:outline-none focus:border-ink-400"
+                    className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-2 focus:outline-none focus:border-ink-400 disabled:opacity-50"
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={() => startEditing(item)}
-                    className="block w-full text-left text-sm font-medium text-ink-50 truncate hover:text-ink-200 transition-colors cursor-text"
+                    disabled={readOnly}
+                    className="block w-full text-left text-sm font-medium text-ink-50 truncate hover:text-ink-200 transition-colors cursor-text disabled:cursor-default disabled:hover:text-ink-50 disabled:opacity-75"
                     title="Clic para renombrar"
                   >
                     {item.nombre}
@@ -206,7 +212,7 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
                   value={item.cantidad ?? 1}
                   onChange={(event) => handleQuantityInput(item.id, event.target.value)}
                   onBlur={() => handleQuantityBlur(item)}
-                  disabled={savingField === `cantidad-${item.id}`}
+                  disabled={readOnly || savingField === `cantidad-${item.id}`}
                   className="w-16 bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-2 text-center focus:outline-none focus:border-ink-400 disabled:opacity-50"
                 />
               </div>
@@ -218,14 +224,16 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
                     <button
                       type="button"
                       onClick={() => handleRename(item)}
-                      className="px-3 py-2 bg-ink-50 hover:bg-ink-200 text-ink-950 text-xs font-bold rounded-control transition-colors cursor-pointer"
+                      disabled={readOnly}
+                      className="px-3 py-2 bg-ink-50 hover:bg-ink-200 text-ink-950 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Guardar
                     </button>
                     <button
                       type="button"
                       onClick={cancelEditing}
-                      className="px-3 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs font-bold rounded-control transition-colors cursor-pointer"
+                      disabled={readOnly}
+                      className="px-3 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancelar
                     </button>
@@ -234,7 +242,8 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
                   <button
                     type="button"
                     onClick={() => startEditing(item)}
-                    className="px-3 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs font-bold rounded-control transition-colors cursor-pointer"
+                    disabled={readOnly}
+                    className="px-3 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Renombrar
                   </button>
@@ -242,8 +251,8 @@ export function InventoryTab({ character, _onCharacterUpdate }) {
                 <button
                   type="button"
                   onClick={() => handleDelete(item)}
-                  disabled={savingField === `borrar-${item.id}`}
-                  className="px-3 py-2 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                  disabled={readOnly || savingField === `borrar-${item.id}`}
+                  className="px-3 py-2 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {savingField === `borrar-${item.id}` ? 'Borrando...' : 'Eliminar'}
                 </button>

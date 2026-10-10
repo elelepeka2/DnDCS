@@ -151,7 +151,7 @@ const getLevelProgress = (totalExp) => {
   };
 };
 
-export function StatsTab({ character, onCharacterUpdate }) {
+export function StatsTab({ character, onCharacterUpdate, readOnly = false }) {
   const [viewMode, setViewMode] = useState('attributes');
 
   const [stats, setStats] = useState({
@@ -313,7 +313,10 @@ export function StatsTab({ character, onCharacterUpdate }) {
     }
   }, [character?.id, character?.race_id]);
 
+  // Fail-closed guard at the single write choke point: first-line return BEFORE
+  // setSavingStatus and the 500ms debounce, so no request is ever issued.
   const autoSaveToSupabase = (fieldsToUpdate) => {
+    if (readOnly) return;
     if (!character?.id) return;
     setSavingStatus('Guardando...');
 
@@ -490,9 +493,12 @@ export function StatsTab({ character, onCharacterUpdate }) {
 
   return (
     <div className="w-full max-w-4xl bg-ink-900 border border-ink-700 p-6 md:p-8 relative">
-      <div className="absolute top-4 right-6 text-xs font-mono font-bold text-ink-400">
-        {savingStatus}
-      </div>
+      {/* The save indicator only makes sense when saving is possible */}
+      {!readOnly && (
+        <div className="absolute top-4 right-6 text-xs font-mono font-bold text-ink-400">
+          {savingStatus}
+        </div>
+      )}
 
       <div className="flex justify-center mb-6">
         <div className="bg-ink-950 p-1.5 rounded-control border border-ink-700 inline-flex gap-2">
@@ -603,7 +609,8 @@ export function StatsTab({ character, onCharacterUpdate }) {
                   setIniciativa(val);
                   autoSaveToSupabase({ iniciativa: val });
                 }}
-                className="mt-1 w-full bg-ink-800 border border-ink-700 text-ink-50 font-bold text-base rounded-control px-3 py-1.5 focus:outline-none focus:border-ink-400"
+                disabled={readOnly}
+                className="mt-1 w-full bg-ink-800 border border-ink-700 text-ink-50 font-bold text-base rounded-control px-3 py-1.5 focus:outline-none focus:border-ink-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div className="flex-1">
@@ -616,7 +623,8 @@ export function StatsTab({ character, onCharacterUpdate }) {
                   setCa(val);
                   autoSaveToSupabase({ ca: val });
                 }}
-                className="mt-1 w-full bg-ink-800 border border-ink-700 text-ink-50 font-bold text-base rounded-control px-3 py-1.5 focus:outline-none focus:border-ink-400"
+                disabled={readOnly}
+                className="mt-1 w-full bg-ink-800 border border-ink-700 text-ink-50 font-bold text-base rounded-control px-3 py-1.5 focus:outline-none focus:border-ink-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -645,7 +653,8 @@ export function StatsTab({ character, onCharacterUpdate }) {
                     setHpActual(val);
                     autoSaveToSupabase({ hp_actual: val });
                   }}
-                  className="bg-ink-800 border border-ink-700 text-xs font-bold text-ink-50 rounded-control px-2 py-1 text-center"
+                  disabled={readOnly}
+                  className="bg-ink-800 border border-ink-700 text-xs font-bold text-ink-50 rounded-control px-2 py-1 text-center disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div className="w-1/2 flex flex-col">
@@ -701,18 +710,21 @@ export function StatsTab({ character, onCharacterUpdate }) {
                 value={expAmount}
                 onChange={(e) => setExpAmount(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleModifyExp(false)}
-                className="w-1/2 bg-ink-800 border border-ink-700 text-xs font-bold text-ink-50 rounded-control px-2 py-1.5 focus:outline-none focus:border-ink-400"
+                disabled={readOnly}
+                className="w-1/2 bg-ink-800 border border-ink-700 text-xs font-bold text-ink-50 rounded-control px-2 py-1.5 focus:outline-none focus:border-ink-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <div className="flex gap-1.5 w-1/2">
                 <button
                   onClick={() => handleModifyExp(false)}
-                  className="flex-1 bg-ink-50 hover:bg-ink-200 text-ink-950 font-mono font-bold text-xs py-1.5 rounded-control transition-colors cursor-pointer"
+                  disabled={readOnly}
+                  className="flex-1 bg-ink-50 hover:bg-ink-200 text-ink-950 font-mono font-bold text-xs py-1.5 rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + EXP
                 </button>
                 <button
                   onClick={() => handleModifyExp(true)}
-                  className="flex-1 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 font-mono font-bold text-xs py-1.5 rounded-control transition-colors cursor-pointer"
+                  disabled={readOnly}
+                  className="flex-1 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 font-mono font-bold text-xs py-1.5 rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   - EXP
                 </button>
@@ -746,7 +758,8 @@ export function StatsTab({ character, onCharacterUpdate }) {
                   type="number"
                   value={stats[key]}
                   onChange={(e) => handleStatChange(key, e.target.value)}
-                  className="w-full bg-ink-800 border border-ink-700 text-center font-bold text-lg text-ink-50 rounded-control py-1 focus:outline-none focus:border-ink-400"
+                  disabled={readOnly}
+                  className="w-full bg-ink-800 border border-ink-700 text-center font-bold text-lg text-ink-50 rounded-control py-1 focus:outline-none focus:border-ink-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <div className="mt-1 flex justify-between items-center text-xs font-mono text-ink-400 px-1">
                   <span>Total: <strong className="text-ink-50">{totalScore}</strong></span>

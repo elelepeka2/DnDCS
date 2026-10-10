@@ -14,7 +14,7 @@ const SLOT_LABELS = {
   accessory_2: 'Accesorio 2',
 };
 
-export function EquipmentTab({ character, _onCharacterUpdate }) {
+export function EquipmentTab({ character, _onCharacterUpdate, readOnly = false }) {
   const [equipment, setEquipment] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +56,7 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
   const rowForSlot = (slot) => equipment.find((row) => row.slot === slot) || null;
 
   const handleEquip = async (slot, itemId) => {
+    if (readOnly) return;
     if (!itemId) return;
 
     const item = inventory.find((row) => row.id === itemId);
@@ -80,6 +81,7 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
   };
 
   const handleUnequip = async (slot) => {
+    if (readOnly) return;
     const row = rowForSlot(slot);
     if (!row) return;
 
@@ -121,8 +123,8 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
                     <button
                       type="button"
                       onClick={() => handleUnequip(slot)}
-                      disabled={busy}
-                      className="shrink-0 px-3 py-2 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                      disabled={busy || readOnly}
+                      className="shrink-0 px-3 py-2 bg-ink-800 hover:bg-signal-600 border border-ink-700 hover:border-signal-600 text-ink-200 hover:text-ink-50 text-xs font-bold rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {busy ? '...' : 'Desequipar'}
                     </button>
@@ -131,7 +133,7 @@ export function EquipmentTab({ character, _onCharacterUpdate }) {
                   <select
                     value=""
                     onChange={(event) => handleEquip(slot, event.target.value)}
-                    disabled={busy || inventory.length === 0}
+                    disabled={busy || readOnly || inventory.length === 0}
                     className="w-full bg-ink-800 border border-ink-700 text-ink-50 font-medium text-sm rounded-control p-3 focus:outline-none focus:border-ink-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">

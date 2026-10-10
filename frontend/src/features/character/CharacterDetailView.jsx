@@ -12,11 +12,14 @@ import { EquipmentTab } from './components/EquipmentTab';
 import { BiographyTab } from './components/BiographyTab';
 import { tabPillTransition } from '../../components/ui/motionVariants';
 
-export function CharacterDetailView() {
+export function CharacterDetailView({ readOnly = false, backTo = '/dashboard' }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [character, setCharacter] = useState(null);
+  // Fail-closed: the session resolves in the load effect BEFORE rendering;
+  // while sessionUserId is still null, isReadOnly stays true.
+  const [sessionUserId, setSessionUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
   const tabListRef = useRef(null);
@@ -39,6 +42,16 @@ export function CharacterDetailView() {
   const fetchCharacter = async () => {
     try {
       setLoading(true);
+
+      // Resolve the session BEFORE loading data: if anything fails here,
+      // sessionUserId stays null and the view falls back to read-only.
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSessionUserId(session?.user?.id ?? null);
+      } catch (sessionError) {
+        console.error('Error resolving the session:', sessionError);
+        setSessionUserId(null);
+      }
 
       // Consulta intentando traer las relaciones de clase y subclase
       let { data, error } = await supabase
@@ -101,7 +114,7 @@ export function CharacterDetailView() {
       <div className="min-h-screen bg-ink-950 flex flex-col items-center justify-center text-ink-50">
         <p className="text-lg font-bold mb-4 text-ink-200">Personaje no encontrado.</p>
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate(backTo)}
           className="px-4 py-2 bg-ink-50 hover:bg-ink-200 text-ink-950 font-bold rounded-control transition-colors cursor-pointer"
         >
           ← Volver al Panel
@@ -110,12 +123,17 @@ export function CharacterDetailView() {
     );
   }
 
+  // Fail-closed (design): read-only when the prop asks for it, when the session
+  // has not resolved yet, or when the ownership mismatches. The session is
+  // already resolved here because fetchCharacter awaits it before setCharacter.
+  const isReadOnly = readOnly || !sessionUserId || character.user_id !== sessionUserId;
+
   return (
     <div className="min-h-screen bg-ink-950 text-ink-50 p-4 md:p-8 flex flex-col items-center">
       {/* Botón Volver */}
       <div className="w-full max-w-4xl mb-6">
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate(backTo)}
           className="text-xs font-mono uppercase tracking-wider text-ink-400 hover:text-ink-50 flex items-center gap-2 transition-colors cursor-pointer"
         >
           ← Volver al Panel
@@ -216,22 +234,22 @@ export function CharacterDetailView() {
       {/* Renderizado Condicional de Contenido */}
       <div className="w-full max-w-4xl flex justify-center">
         {activeTab === 'profile' && (
-          <ProfileTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+          <ProfileTab character={character} onCharacterUpdate={handleCharacterUpdate} readOnly={isReadOnly} />
         )}
         {activeTab === 'class' && (
-          <ClassTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+          <ClassTab character={character} onCharacterUpdate={handleCharacterUpdate} readOnly={isReadOnly} />
         )}
         {activeTab === 'stats' && (
-          <StatsTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+          <StatsTab character={character} onCharacterUpdate={handleCharacterUpdate} readOnly={isReadOnly} />
         )}
         {activeTab === 'inventory' && (
-          <InventoryTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+          <InventoryTab character={character} onCharacterUpdate={handleCharacterUpdate} readOnly={isReadOnly} />
         )}
         {activeTab === 'equipment' && (
-          <EquipmentTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+          <EquipmentTab character={character} onCharacterUpdate={handleCharacterUpdate} readOnly={isReadOnly} />
         )}
         {activeTab === 'biography' && (
-          <BiographyTab character={character} onCharacterUpdate={handleCharacterUpdate} />
+          <BiographyTab character={character} onCharacterUpdate={handleCharacterUpdate} readOnly={isReadOnly} />
         )}
       </div>
     </div>

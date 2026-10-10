@@ -34,7 +34,7 @@ const DEFAULT_LANGUAGES = [
   { id: 'silvano', nombre: 'Silvano' }
 ];
 
-export function ProfileTab({ character, onCharacterUpdate }) {
+export function ProfileTab({ character, onCharacterUpdate, readOnly = false }) {
   const [razas, setRazas] = useState([]);
   const [classesList, setClassesList] = useState([]);
   const [subclassesList, setSubclassesList] = useState([]);
@@ -141,6 +141,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   const nativeLanguages = IDIOMAS_POR_RAZA[razaClave] || ['Común'];
 
   const handleSelectExtraLanguage = async (idiomaNombre) => {
+    if (readOnly) return;
     if (!character?.id) return;
 
     await supabase
@@ -164,6 +165,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const updateField = async (field, value) => {
+    if (readOnly) return;
     setSavingField(field);
     const { error } = await supabase
       .from('characters')
@@ -179,6 +181,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleClassChange = async (newClassId) => {
+    if (readOnly) return;
     setSavingField('class_id');
     const updates = { class_id: newClassId || null, subclass_id: null };
 
@@ -200,6 +203,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleSubclassChange = async (newSubclassId) => {
+    if (readOnly) return;
     setSavingField('subclass_id');
     const updates = { subclass_id: newSubclassId || null };
 
@@ -216,6 +220,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleMulticlassChange = async (newMultiClassId) => {
+    if (readOnly) return;
     setSavingField('multiclass_id');
     const updates = { multiclass_id: newMultiClassId || null, multiclass_subclass_id: null };
 
@@ -233,6 +238,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleMultiSubclassChange = async (newMultiSubclassId) => {
+    if (readOnly) return;
     setSavingField('multiclass_subclass_id');
     const updates = { multiclass_subclass_id: newMultiSubclassId || null };
 
@@ -249,6 +255,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
   };
 
   const handleAvatarUpload = async (event) => {
+    if (readOnly) return;
     try {
       setUploading(true);
       const file = event.target.files[0];
@@ -293,9 +300,11 @@ export function ProfileTab({ character, onCharacterUpdate }) {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
         <div className="md:col-span-4 flex flex-col items-center">
-          <label 
+          <label
             htmlFor="avatar-upload"
-            className="w-full aspect-[4/5] max-w-[220px] bg-ink-950 rounded-control border border-ink-700 flex flex-col items-center justify-center overflow-hidden relative group cursor-pointer hover:border-ink-400 transition-colors"
+            className={`w-full aspect-[4/5] max-w-[220px] bg-ink-950 rounded-control border border-ink-700 flex flex-col items-center justify-center overflow-hidden relative transition-colors ${
+              readOnly ? '' : 'group cursor-pointer hover:border-ink-400'
+            }`}
           >
             {character?.avatar_url ? (
               <img
@@ -309,14 +318,16 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                   <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-3zm0 4a3 3 0 110 6 3 3 0 010-6zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
                 </svg>
                 <span className="text-xs font-mono uppercase tracking-wider text-ink-400 group-hover:text-ink-50">
-                  Subir Foto
+                  {readOnly ? 'Sin foto' : 'Subir Foto'}
                 </span>
               </div>
             )}
 
-            <div className="absolute inset-0 bg-ink-950/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-bold text-ink-50 uppercase tracking-wider">
-              {uploading ? 'Subiendo...' : 'Cambiar Foto'}
-            </div>
+            {!readOnly && (
+              <div className="absolute inset-0 bg-ink-950/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-bold text-ink-50 uppercase tracking-wider">
+                {uploading ? 'Subiendo...' : 'Cambiar Foto'}
+              </div>
+            )}
           </label>
 
           <input
@@ -324,7 +335,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             id="avatar-upload"
             accept="image/*"
             onChange={handleAvatarUpload}
-            disabled={uploading}
+            disabled={uploading || readOnly}
             className="hidden"
           />
 
@@ -350,29 +361,37 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                   value={edadInput}
                   onChange={(e) => setEdadInput(e.target.value)}
                   placeholder="Ej. 25"
-                  className="w-24 bg-ink-800 border border-ink-700 rounded-control px-2 py-1 text-sm font-medium text-ink-50 focus:outline-none focus:border-ink-400"
+                  disabled={readOnly}
+                  className="w-24 bg-ink-800 border border-ink-700 rounded-control px-2 py-1 text-sm font-medium text-ink-50 focus:outline-none focus:border-ink-400 disabled:opacity-50"
                 />
                 <button
                   onClick={() => {
                     updateField('edad', edadInput ? parseInt(edadInput) : null);
                     setIsEditingEdad(false);
                   }}
-                  className="px-2 py-1 bg-ink-50 hover:bg-ink-200 text-ink-950 text-xs font-bold rounded-control cursor-pointer transition-colors"
+                  disabled={readOnly}
+                  className="px-2 py-1 bg-ink-50 hover:bg-ink-200 text-ink-950 text-xs font-bold rounded-control cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Guardar
                 </button>
               </div>
             ) : (
-              <div 
-                onClick={() => setIsEditingEdad(true)}
-                className="flex items-center gap-2 cursor-pointer group mt-0.5"
+              <div
+                onClick={() => {
+                  // Non-form affordance: also stays out of edit mode when read-only.
+                  if (readOnly) return;
+                  setIsEditingEdad(true);
+                }}
+                className={`flex items-center gap-2 mt-0.5 ${readOnly ? '' : 'cursor-pointer group'}`}
               >
                 <p className="text-base font-medium text-ink-200 group-hover:text-ink-50 transition-colors">
-                  {character?.edad ? `${character.edad} años` : 'Añadir edad...'}
+                  {character?.edad ? `${character.edad} años` : readOnly ? '—' : 'Añadir edad...'}
                 </p>
-                <span className="text-xs text-ink-400 group-hover:text-ink-200 opacity-0 group-hover:opacity-100 transition-opacity">
-                  ✎
-                </span>
+                {!readOnly && (
+                  <span className="text-xs text-ink-400 group-hover:text-ink-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                    ✎
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -383,8 +402,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             <select
               value={character?.race_id || ''}
               onChange={(e) => updateField('race_id', e.target.value || null)}
-              disabled={savingField === 'race_id'}
-              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
+              disabled={readOnly || savingField === 'race_id'}
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Selecciona raza...</option>
               {razas.map((raza) => (
@@ -401,8 +420,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             <select
               value={character?.class_id || ''}
               onChange={(e) => handleClassChange(e.target.value)}
-              disabled={savingField === 'class_id'}
-              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
+              disabled={readOnly || savingField === 'class_id'}
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Selecciona clase...</option>
               {classesList.map((cls) => (
@@ -419,7 +438,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             <select
               value={character?.subclass_id || ''}
               onChange={(e) => handleSubclassChange(e.target.value)}
-              disabled={savingField === 'subclass_id' || !activeClassId}
+              disabled={readOnly || savingField === 'subclass_id' || !activeClassId}
               className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-40"
             >
               <option value="">
@@ -439,8 +458,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             <select
               value={character?.multiclass_id || ''}
               onChange={(e) => handleMulticlassChange(e.target.value)}
-              disabled={savingField === 'multiclass_id'}
-              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
+              disabled={readOnly || savingField === 'multiclass_id'}
+              className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Ninguna / Selecciona...</option>
               {classesList.map((cls) => (
@@ -457,7 +476,7 @@ export function ProfileTab({ character, onCharacterUpdate }) {
             <select
               value={character?.multiclass_subclass_id || ''}
               onChange={(e) => handleMultiSubclassChange(e.target.value)}
-              disabled={savingField === 'multiclass_subclass_id' || !character?.multiclass_id}
+              disabled={readOnly || savingField === 'multiclass_subclass_id' || !character?.multiclass_id}
               className="mt-1 w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-40"
             >
               <option value="">
@@ -492,7 +511,8 @@ export function ProfileTab({ character, onCharacterUpdate }) {
                   <select
                     value={extraLanguages[0] || ''}
                     onChange={(e) => handleSelectExtraLanguage(e.target.value)}
-                    className="w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer"
+                    disabled={readOnly}
+                    className="w-full bg-ink-800 border border-ink-700 hover:border-ink-400 text-ink-200 font-medium text-sm rounded-control px-2.5 py-1.5 focus:outline-none focus:border-ink-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Selecciona idioma adicional...</option>
                     {languagesList
