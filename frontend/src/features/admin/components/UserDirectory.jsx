@@ -28,7 +28,7 @@ function formatDate(iso) {
 // usuarios. El gate de rol es UX únicamente: RLS es la barrera de seguridad,
 // y toda escritura rechazada devuelve 0 filas ("Sin permisos"). Sin
 // actualizaciones optimistas: tras cada escritura se refetchea la página.
-export function UserDirectory({ currentUserId }) {
+export function UserDirectory({ currentUserId, onViewCharacters }) {
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
@@ -62,11 +62,40 @@ export function UserDirectory({ currentUserId }) {
         setError('No se pudo cargar el directorio de usuarios.');
         setRows([]);
         setCount(0);
-      } else {
-        setError('');
-        setRows(data ?? []);
-        setCount(totalCount ?? 0);
+        setLoading(false);
+        return;
       }
+
+      // Recuento cosmético de personajes por usuario (S4-T1). Se lanza SIEMPRE
+      // después de un profiles exitoso, pero su fallo jamás degrada el
+      // directorio: countByUserId queda null, cada fila recibe
+      // character_count = null y se renderiza el placeholder «—». No se toca
+      // el banner de error ni se limpian filas — el recuento es decorativo.
+      const pageUserIds = [...new Set((data ?? []).map((row) => row.user_id))];
+      let countByUserId = null;
+      if (pageUserIds.length > 0) {
+        const { data: characterRows, error: characterError } = await supabase
+          .from('characters')
+          .select('user_id')
+          .in('user_id', pageUserIds);
+        if (request !== requestRef.current) return;
+        if (!characterError) {
+          countByUserId = {};
+          for (const character of characterRows ?? []) {
+            countByUserId[character.user_id] = (countByUserId[character.user_id] ?? 0) + 1;
+          }
+        }
+      }
+
+      setError('');
+      setRows(
+        (data ?? []).map((row) => ({
+          ...row,
+          // null = el recuento falló; 0 = consulta exitosa sin personajes.
+          character_count: countByUserId === null ? null : (countByUserId[row.user_id] ?? 0),
+        }))
+      );
+      setCount(totalCount ?? 0);
       setLoading(false);
     };
 
@@ -199,12 +228,33 @@ export function UserDirectory({ currentUserId }) {
                 className="bg-ink-900 border border-ink-700 p-4 flex flex-wrap items-center justify-between gap-4"
               >
                 <div className="min-w-0">
-                  <p className="font-bold text-ink-50 truncate">
-                    {name}
-                    {isOwn && (
-                      <span className="ml-2 text-xs font-normal text-ink-400">Tu cuenta</span>
-                    )}
-                  </p>
+                  {/* Fila superior: nombre (truncable) + badge de recuento.
+                      El badge vive fuera del <p> con truncate para que un
+                      nombre largo no lo ellipsice ni lo recorte. */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="font-bold text-ink-50 truncate">
+                      {name}
+                      {isOwn && (
+                        <span className="ml-2 text-xs font-normal text-ink-400">Tu cuenta</span>
+                      )}
+                    </p>
+                    <span
+                      className="shrink-0 inline-flex items-center px-2 py-0.5 border border-ink-700 bg-ink-800 text-ink-200 text-xs font-normal rounded-control"
+                      title={
+                        row.character_count === null
+                          ? 'Recuento no disponible'
+                          : `${row.character_count} ${
+                              row.character_count === 1 ? 'personaje' : 'personajes'
+                            }`
+                      }
+                    >
+                      {row.character_count === null
+                        ? '—'
+                        : `${row.character_count} ${
+                            row.character_count === 1 ? 'personaje' : 'personajes'
+                          }`}
+                    </span>
+                  </div>
                   <p className="text-xs text-ink-400 mt-0.5">
                     Alta: {formatDate(row.created_at)}
                   </p>
@@ -238,39 +288,54 @@ export function UserDirectory({ currentUserId }) {
                     </button>
                   )}
 
-                  {/* Acciones de cuenta: la fila propia no ofrece ninguna
-                      (self-ban/self-delete se bloquean además en el servidor
-                      con 400 SELF_ACTION — spec: "admin may name and remove
-                      other admins", sólo la fila del llamador se exime). */}
-                  {!isOwn && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setConfirmAction({ type: 'ban', row })}
-                        disabled={saving}
-                        className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        Suspender
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmAction({ type: 'set-password', row })}
-                        disabled={saving}
-                        title={`Forzar contraseña de ${name}`}
-                        className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        Contraseña
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmAction({ type: 'delete', row })}
-                        disabled={saving}
-                        className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
+                  {/* Acciones de fila. «Personajes» navega al directorio de
+                      personajes filtrado por este usuario y está en TODA fila
+                      (propia o ajena): filtrar el directorio por uno mismo
+                      es legítimo. Las acciones destructivas sólo existen en
+                      filas ajenas (self-ban/self-delete se bloquean además en
+                      el servidor con 400 SELF_ACTION — spec: "admin may name
+                      and remove other admins", sólo la fila del llamador se
+                      exime). */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onViewCharacters(row)}
+                      disabled={saving}
+                      title={`Ver personajes de ${name}`}
+                      className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      Personajes
+                    </button>
+                    {!isOwn && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction({ type: 'ban', row })}
+                          disabled={saving}
+                          className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          Suspender
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction({ type: 'set-password', row })}
+                          disabled={saving}
+                          title={`Forzar contraseña de ${name}`}
+                          className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          Contraseña
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction({ type: 'delete', row })}
+                          disabled={saving}
+                          className="px-2.5 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-xs rounded-control transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </m.li>
             );
