@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { UserDirectory } from './components/UserDirectory';
+import { CharacterDirectory } from './components/CharacterDirectory';
+
+// Active/inactive classes for the header view switch — same ink tokens and
+// rounded-control shape as every other admin button.
+const viewButtonClass = (active) =>
+  `px-4 py-2 border text-sm font-medium rounded-control transition-colors cursor-pointer ${
+    active
+      ? 'bg-ink-800 border-ink-400 text-ink-50'
+      : 'bg-ink-900 hover:bg-ink-800 border-ink-700 text-ink-400'
+  }`;
 
 // Shell de la ruta /admin (slice S3).
 // Defensa en profundidad: además del gate de App.jsx, esta página vuelve a
@@ -15,6 +25,12 @@ export function AdminPage() {
   // Id de la sesión actual: UserDirectory lo recibe por prop (sin Context)
   // para deshabilitar el control de rol de la fila propia.
   const [currentUserId, setCurrentUserId] = useState(null);
+  // Admin view switch (S3 / REQ-5): 'users' keeps the original directory,
+  // 'characters' opens the read-only character list.
+  const [view, setView] = useState('users');
+  // Optional owner scope for the character directory; when set it is passed
+  // down as a query filter and cleared through the directory's own banner.
+  const [ownerFilter, setOwnerFilter] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,17 +85,49 @@ export function AdminPage() {
           <h1 className="text-2xl font-bold tracking-tight">Administración</h1>
           <p className="text-sm text-ink-400 mt-1">Gestión de usuarios y permisos</p>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard')}
-          className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
-        >
-          ← Volver al Panel
-        </button>
+        {/* View switch: rendered only after the fail-closed recheck above
+            returned 'allowed' — no second, weaker gate is introduced here. */}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex items-center gap-2" role="group" aria-label="Vista de administración">
+            <button
+              type="button"
+              onClick={() => setView('users')}
+              aria-pressed={view === 'users'}
+              className={viewButtonClass(view === 'users')}
+            >
+              Usuarios
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('characters')}
+              aria-pressed={view === 'characters'}
+              className={viewButtonClass(view === 'characters')}
+            >
+              Personajes
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-200 text-sm font-medium rounded-control transition-colors cursor-pointer"
+          >
+            ← Volver al Panel
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto">
-        {currentUserId && <UserDirectory currentUserId={currentUserId} />}
+        {view === 'characters' ? (
+          // key: an ownerFilter change remounts the directory, resetting its
+          // pagination to page 1 without a setState-in-effect inside the child.
+          <CharacterDirectory
+            key={ownerFilter ?? 'all'}
+            ownerFilter={ownerFilter}
+            onClearOwnerFilter={() => setOwnerFilter(null)}
+          />
+        ) : (
+          currentUserId && <UserDirectory currentUserId={currentUserId} />
+        )}
       </main>
     </div>
   );
